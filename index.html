@@ -44,15 +44,12 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
     /* Certificate Layout */
-    .cert-wrapper { perspective: 1000px; }
-    
     .certificate-container {
-      margin: 0 auto;
       background: white;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
       position: relative;
       box-sizing: border-box;
-      transition: all 0.4s ease;
+      transition: box-shadow 0.4s ease;
       overflow: hidden;
       display: flex;
       justify-content: center;
@@ -104,10 +101,10 @@
       }
 
       #cert-container {
-        position: absolute !important;
+        position: static !important;
         top: 0 !important;
         left: 0 !important;
-        margin: 0 !important;
+        margin: 0 auto !important;
         padding: 0 !important;
         box-shadow: none !important;
         transform: none !important;
@@ -433,10 +430,10 @@
 
         <!-- Scrollable Viewport -->
         <div class="flex-1 overflow-auto p-4 md:p-10 flex justify-center items-start custom-scrollbar relative" id="preview-viewport">
-          <!-- Wrapper transisi skala -->
-          <div class="w-full flex justify-center items-start pb-24 transition-all" id="cert-wrapper">
+          <!-- Wrapper transisi skala Absolut Centering -->
+          <div class="relative transition-all mx-auto pb-24 md:pb-10" id="cert-wrapper">
             <!-- DOM Sertifikat Aktual -->
-            <div class="certificate-container landscape transform transition-transform duration-300" id="cert-container" style="transform-origin: top center;">
+            <div class="certificate-container landscape transform origin-top-left transition-transform duration-300 absolute top-0 left-0" id="cert-container">
               <!-- Content will be injected here by JS -->
             </div>
           </div>
@@ -472,7 +469,6 @@
     });
 
     // --- API Configuration (Obfuscated) ---
-    // String di bawah adalah representasi Base64 dari URL Apps Script asli Anda
     const _0x1a2b = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J4bWtlVU9EUzZ0NGZsdGkzYl9OTEUyTlktdFVNSVlFY0lKT1VJYmpOSlBGbGI1QjhEWTgzeEJPOGc3ek1xTU4xb0UvZXhlYw==";
 
     // --- Initialize Icons ---
@@ -563,7 +559,7 @@
         certDesc3: "pada",
         certDesc4: "dan diselesaikan dengan sempurna sesuai sunnah Rasulullah ﷺ oleh:",
         qrText: "Scan to Verify",
-        hadithTranslation: "\"Laksanakan haji dan umroh untuk ayahmu!\"<br>(HR. At Tirmidzi, dari Abu Razin Al 'Uqaili yang bertanya tentang ayahnya yang sudah tua renta)"
+        hadithTranslation: "\"Laksanakan haji dan umroh untuk ayahmu!\"<br>(HR. At Tirmidzi, dari Abu Razin Al 'Uqaili اللي يسأل عن أبيه العجوز)"
       },
       ar: {
         appTitle: "مولد شهادة البدل",
@@ -667,12 +663,18 @@
     window.addEventListener('beforeprint', () => {
       const container = document.getElementById('cert-container');
       const wrapper = document.getElementById('cert-wrapper');
-      if(container) { container.style.transform = 'none'; }
-      if(wrapper) { wrapper.style.height = 'auto'; }
+      if(container) { 
+        container.style.transform = 'none'; 
+        container.classList.remove('absolute', 'top-0', 'left-0');
+      }
+      if(wrapper) { 
+        wrapper.style.width = '100%';
+        wrapper.style.height = 'auto'; 
+      }
     });
 
     window.addEventListener('afterprint', () => {
-      calculateAutoScale();
+      adjustScale(0); 
     });
 
     // --- Core Initialization ---
@@ -1058,7 +1060,7 @@
       }
     }
 
-    // --- View Controls (Auto Scale to Fit Screen) ---
+    // --- View Controls (Auto Scale Absolute Layouter) ---
     function adjustScale(change) {
       previewScale += change;
       if (previewScale < 0.15) previewScale = 0.15;
@@ -1069,12 +1071,19 @@
       
       if (window.matchMedia('print').matches) {
         container.style.transform = `none`;
+        container.classList.remove('absolute', 'top-0', 'left-0');
+        wrapper.style.width = '100%';
         wrapper.style.height = 'auto';
       } else {
+        container.classList.add('absolute', 'top-0', 'left-0');
         container.style.transform = `scale(${previewScale})`;
         
-        // Sesuaikan wrapper tinggi berdasarkan proporsi agar bisa discroll dengan baik
+        const baseWidth = currentOrientation === 'landscape' ? 1123 : 794;
         const baseHeight = currentOrientation === 'landscape' ? 794 : 1123;
+        
+        // Memaksa wrapper (parent) memiliki ukuran yang sama dengan kotak hasil scale
+        // untuk memastikan tidak ada scroll bar siluman & layout persis di tengah
+        wrapper.style.width = `${baseWidth * previewScale}px`;
         wrapper.style.height = `${baseHeight * previewScale}px`; 
       }
     }
@@ -1083,9 +1092,8 @@
       const viewport = document.getElementById('preview-viewport');
       if (!viewport || !isPreviewVisible) return;
       
-      // Lebar dasar disesuaikan dengan orientasi
       const certBaseWidth = currentOrientation === 'landscape' ? 1123 : 794; 
-      const paddingX = window.innerWidth < 768 ? 32 : 80; 
+      const paddingX = window.innerWidth < 768 ? 40 : 80; 
       
       let autoScale = (viewport.clientWidth - paddingX) / certBaseWidth;
       
@@ -1188,16 +1196,15 @@
               <span class="${wmSize} font-black text-slate-800 opacity-[0.06] transform -rotate-45 select-none tracking-widest drop-shadow-md">GHASSAN</span>
           </div>` : '';
 
-        // Penyesuaian Style Teks untuk Landscape/Portrait
+        // Penyesuaian Style Teks secara presisi untuk Landscape/Portrait
         const titleTextClass = isPortrait ? 'text-3xl md:text-4xl' : 'text-4xl md:text-5xl';
         const subtitleTextClass = isPortrait ? 'text-lg md:text-xl' : 'text-xl md:text-2xl';
         const nameTextClass = isPortrait ? 'text-4xl md:text-6xl my-3' : 'text-5xl md:text-7xl my-1';
         const bodyTextClass = isPortrait ? 'text-xs md:text-sm mt-3 leading-relaxed max-w-xl mx-auto px-4' : 'text-sm md:text-base mt-2 max-w-4xl mx-auto leading-relaxed';
         const hadithSizeClass = isPortrait ? 'text-xl md:text-2xl' : 'text-2xl md:text-3xl';
-        const flagGapClass = isPortrait ? 'gap-3 md:gap-4' : 'gap-6 md:gap-8';
-        const maxWidthTitle = isPortrait ? 'max-w-[320px]' : 'max-w-[500px]';
         const spacerSize = isPortrait ? 'w-12 h-12' : 'w-16 h-16';
 
+        // Stuktur HTML: Header -> Center Flex Group (memastikan vertikal center) -> Footer
         const html = `
           <div class="cert-inner ${theme.bgOut}" ${isAr ? 'dir="rtl"' : ''}>
             <div class="w-full h-full ${theme.bgInner} relative flex flex-col items-center justify-between p-4 md:p-5">
@@ -1206,7 +1213,7 @@
               ${bgImageHtml}
               ${watermarkHtml}
               
-              <!-- Header Row -->
+              <!-- Header Row (Menempel Atas) -->
               <div class="w-full flex justify-between items-start relative z-20">
                 <div class="${spacerSize}"></div> 
                 <div class="${theme.textMain} cert-body-text opacity-80 text-xs font-bold uppercase tracking-widest text-center mt-2 px-2 leading-relaxed">
@@ -1217,53 +1224,58 @@
                 </div>
               </div>
 
-              <!-- Title Section with Flags -->
-              <div class="flex justify-center items-center ${flagGapClass} relative z-20 -mt-2 md:-mt-6 w-full" ${isAr ? 'dir="ltr"' : ''}>
-                <div class="flex-shrink-0 pb-4">${flagID}</div>
+              <!-- Main Group Block (Akan terpusat ke tengah secara otomatis) -->
+              <div class="flex-1 w-full flex flex-col justify-center items-center py-2 relative z-20">
                 
-                <div class="text-center flex-1 ${maxWidthTitle}">
-                  <h1 class="${titleTextClass} uppercase tracking-widest cert-title-text ${theme.title} leading-tight">
-                    ${t.certTitle}
-                  </h1>
-                  <h2 class="${subtitleTextClass} mt-1 tracking-widest uppercase font-semibold cert-title-text ${theme.accent}">
-                    ${displayJenis}
-                  </h2>
-                  <div class="w-32 md:w-48 h-1 ${theme.bgInner} mx-auto mt-2 rounded-full opacity-50 border-t border-current"></div>
-                  <p class="mt-1 text-xs md:text-sm ${theme.textMain} cert-body-text opacity-80">${t.lblNomor}: ${val('b_nomor', 'BU-20260417-001')}</p>
+                <!-- Title Section with Flags -->
+                <div class="w-full flex justify-between items-center px-2 md:px-12 mb-4 md:mb-6" ${isAr ? 'dir="ltr"' : ''}>
+                  <div class="flex-shrink-0">${flagID}</div>
+                  
+                  <div class="text-center flex-1 px-2 md:px-4">
+                    <h1 class="${titleTextClass} uppercase tracking-widest cert-title-text ${theme.title} leading-tight">
+                      ${t.certTitle}
+                    </h1>
+                    <h2 class="${subtitleTextClass} mt-1 tracking-widest uppercase font-semibold cert-title-text ${theme.accent}">
+                      ${displayJenis}
+                    </h2>
+                    <div class="w-24 md:w-48 h-1 ${theme.bgInner} mx-auto mt-2 rounded-full opacity-50 border-t border-current"></div>
+                    <p class="mt-1 text-[10px] md:text-sm ${theme.textMain} cert-body-text opacity-80">${t.lblNomor}: ${val('b_nomor', 'BU-20260417-001')}</p>
+                  </div>
+                  
+                  <div class="flex-shrink-0">${flagSA}</div>
                 </div>
-                
-                <div class="flex-shrink-0 pb-4">${flagSA}</div>
+
+                <!-- Body Text Section -->
+                <div class="text-center w-full mb-4 md:mb-6">
+                  <p class="text-xs md:text-sm ${theme.textMain} cert-body-text mb-1 md:mb-2 italic px-4">${t.certGivenTo}</p>
+                  
+                  <h3 class="${nameTextClass} cert-script-text ${theme.accent} leading-tight w-full px-2">
+                    ${val('b_peserta', t.lblPeserta)}
+                  </h3>
+                  
+                  <p class="${bodyTextClass} ${theme.textMain} cert-body-text">
+                    ${t.certDesc1} <strong class="cert-title-text">${displayJenis}</strong> 
+                    ${t.certDesc2} <strong class="cert-title-text">${displayMiqot}</strong> 
+                    ${t.certDesc3} <strong class="cert-title-text">${val('b_waktu', '....................')}</strong>${isAr ? '،' : ','}<br> 
+                    ${t.certDesc4} <br>
+                    <span class="text-sm md:text-lg font-bold mt-2 inline-block border-b border-current border-dashed pb-1 px-4 cert-title-text">${val('b_pelaksana', t.lblPelaksana)}</span>
+                  </p>
+                </div>
+
+                <!-- Hadith Section -->
+                <div class="w-full max-w-3xl mx-auto border-y border-current py-3 opacity-80 ${theme.textMain}">
+                  <p class="cert-arabic-text ${hadithSizeClass} leading-loose mb-1" dir="rtl">
+                    حج عن أبيك واعتمر
+                  </p>
+                  <p class="text-[9px] md:text-xs leading-relaxed px-4 cert-body-text" ${isAr ? 'dir="rtl"' : 'dir="ltr"'}>
+                    ${t.hadithTranslation}
+                  </p>
+                </div>
+
               </div>
 
-              <!-- Body Section -->
-              <div class="text-center relative z-20 flex-1 flex flex-col justify-center w-full my-1 md:my-0">
-                <p class="text-xs md:text-sm ${theme.textMain} cert-body-text mb-1 italic px-4">${t.certGivenTo}</p>
-                
-                <h3 class="${nameTextClass} cert-script-text ${theme.accent} leading-tight w-full px-2">
-                  ${val('b_peserta', t.lblPeserta)}
-                </h3>
-                
-                <p class="${bodyTextClass} ${theme.textMain} cert-body-text">
-                  ${t.certDesc1} <strong class="cert-title-text">${displayJenis}</strong> 
-                  ${t.certDesc2} <strong class="cert-title-text">${displayMiqot}</strong> 
-                  ${t.certDesc3} <strong class="cert-title-text">${val('b_waktu', '....................')}</strong>${isAr ? '،' : ','}<br> 
-                  ${t.certDesc4} <br>
-                  <span class="text-base md:text-lg font-bold mt-2 inline-block border-b border-current border-dashed pb-1 px-4 cert-title-text">${val('b_pelaksana', t.lblPelaksana)}</span>
-                </p>
-              </div>
-
-              <!-- Hadith Section -->
-              <div class="w-full max-w-4xl mx-auto relative z-20 border-y border-current py-2 opacity-80 ${theme.textMain} ${isPortrait ? 'mb-2' : ''}">
-                <p class="cert-arabic-text ${hadithSizeClass} leading-loose mb-0" dir="rtl">
-                  حج عن أبيك واعتمر
-                </p>
-                <p class="text-[9px] md:text-xs leading-relaxed px-4 cert-body-text" ${isAr ? 'dir="rtl"' : 'dir="ltr"'}>
-                  ${t.hadithTranslation}
-                </p>
-              </div>
-
-              <!-- Footer Section -->
-              <div class="w-full flex justify-between items-end relative z-20 ${isPortrait ? 'mt-0' : 'mt-2'} px-2">
+              <!-- Footer Section (Menempel Bawah) -->
+              <div class="w-full flex justify-between items-end relative z-20 px-2">
                 
                 <!-- QR Dokumentasi -->
                 <div class="flex flex-col items-center justify-end pb-1 ${theme.textMain} cert-body-text">
@@ -1271,13 +1283,13 @@
                 </div>
 
                 <!-- Signature -->
-                <div class="text-center w-[250px] md:w-[300px] ${theme.textMain} cert-body-text">
+                <div class="text-center w-[200px] md:w-[300px] ${theme.textMain} cert-body-text">
                   <p class="text-[9px] md:text-[10px] mb-1 leading-relaxed px-2" ${isAr ? 'dir="rtl"' : 'dir="ltr"'}>${formattedDateFull}</p>
                   <p class="text-[10px] md:text-xs font-bold uppercase mb-10 md:mb-12">${val('b_travel', t.lblTravel)}</p>
                   
                   <div class="relative w-full flex flex-col items-center">
                     ${ttdHtml}
-                    <p class="font-bold border-b border-current inline-block pb-0.5 px-4 relative z-20 cert-title-text text-sm">${val('b_penandatangan', t.lblPenandatangan)}</p>
+                    <p class="font-bold border-b border-current inline-block pb-0.5 px-4 relative z-20 cert-title-text text-[10px] md:text-sm">${val('b_penandatangan', t.lblPenandatangan)}</p>
                   </div>
                   <p class="text-[9px] md:text-[10px] mt-1 uppercase tracking-wider">${val('b_jabatan', t.lblJabatan)}</p>
                 </div>
