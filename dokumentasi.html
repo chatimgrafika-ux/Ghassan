@@ -788,18 +788,61 @@
       });
     }
 
+    // Fungsi kompresi gambar untuk menghindari limit LocalStorage (5MB) dan mempercepat render
+    function compressImage(file, callback) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Resolusi maksimal 1200px agar cukup tajam tapi ringan disimpan
+          const MAX_SIZE = 1200;
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height *= MAX_SIZE / width;
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width *= MAX_SIZE / height;
+              height = MAX_SIZE;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Kompres ke JPEG dengan kualitas 70% (0.7)
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          callback(dataUrl);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
     function handleDocsUpload(e, key) {
       const file = e.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          docs[key] = event.target.result;
-          localStorage.setItem(`bu_doc_${key}`, event.target.result);
+        compressImage(file, (compressedBase64) => {
+          docs[key] = compressedBase64;
+          try {
+            localStorage.setItem(`bu_doc_${key}`, compressedBase64);
+          } catch(err) {
+            console.warn('Storage limit reached', err);
+            alert('Penyimpanan browser hampir penuh. Foto tampil, tapi mungkin tidak tersimpan secara permanen jika memuat ulang halaman.');
+          }
           updateDocsUI();
           queueAutoSave();
-        };
-        reader.readAsDataURL(file);
+        });
       }
+      e.target.value = ''; // Reset input agar foto yang sama bisa dipilih lagi jika dihapus
     }
 
     function removeDocImage(key) {
@@ -1019,17 +1062,41 @@
         if (!isPremium && type === 'bg') {
              document.getElementById('premiumModal').classList.remove('hidden');
         }
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const base64 = event.target.result;
-          if (type === 'logo') { imgLogo = base64; localStorage.setItem('bu_doc_logo', base64); }
-          else if (type === 'ttd') { imgTtd = base64; localStorage.setItem('bu_doc_ttd', base64); }
-          else if (type === 'bg') { imgBg = base64; localStorage.setItem('bu_doc_bg', base64); }
+        compressImage(file, (compressedBase64) => {
+          if (type === 'logo') { 
+              imgLogo = compressedBase64; 
+              try { localStorage.setItem('bu_doc_logo', compressedBase64); } catch(e){} 
+          }
+          else if (type === 'ttd') { 
+              imgTtd = compressedBase64; 
+              try { localStorage.setItem('bu_doc_ttd', compressedBase64); } catch(e){} 
+          }
+          else if (type === 'bg') { 
+              imgBg = compressedBase64; 
+              try { localStorage.setItem('bu_doc_bg', compressedBase64); } catch(e){} 
+          }
           updateImageUI();
           queueAutoSave();
-        };
-        reader.readAsDataURL(file);
+        });
       }
+      e.target.value = '';
+    }
+
+    function handleDocsUpload(e, key) {
+      const file = e.target.files[0];
+      if (file) {
+        compressImage(file, (compressedBase64) => {
+          docs[key] = compressedBase64;
+          try {
+            localStorage.setItem(`bu_doc_${key}`, compressedBase64);
+          } catch(err) {
+            console.warn('Storage limit reached', err);
+          }
+          updateDocsUI();
+          queueAutoSave();
+        });
+      }
+      e.target.value = '';
     }
 
     function removeImage(type) {
