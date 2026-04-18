@@ -13,7 +13,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;700&family=Cinzel:wght@400;700&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&display=swap');
+    /* 12+ Font Combinations Imported */
+    @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Amiri:ital,wght@0,400;0,700;1,400&family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;700&family=Cinzel:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Courgette&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Inter:wght@400;500;600;700&family=Lato:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;700&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Oswald:wght@400;500;600;700&family=Pacifico&family=Parisienne&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Poppins:ital,wght@0,400;0,600;0,700;1,400&family=Reem+Kufi:wght@400;500;600;700&family=Roboto+Slab:wght@400;500;600;700&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Satisfy&family=Scheherazade+New:wght@400;700&family=Tajawal:wght@400;500;700&display=swap');
     
     :root {
       --primary: #047857; /* Emerald 600 */
@@ -42,14 +43,10 @@
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-    /* Certificate Layout (A4 Landscape) */
+    /* Certificate Layout */
     .cert-wrapper { perspective: 1000px; }
     
     .certificate-container {
-      width: 297mm;
-      height: 210mm;
-      min-width: 297mm;
-      min-height: 210mm;
       margin: 0 auto;
       background: white;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -60,15 +57,19 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 0; /* Pastikan 0 agar ujung ke ujung */
+      padding: 0;
     }
+
+    /* Orientasi Presisi */
+    .landscape { width: 297mm; height: 210mm; min-width: 297mm; min-height: 210mm; }
+    .portrait { width: 210mm; height: 297mm; min-width: 210mm; min-height: 297mm; }
 
     .cert-inner {
       width: 100%;
       height: 100%;
       position: relative;
       z-index: 10;
-      padding: 4mm; /* Jarak dari ujung kertas ke bingkai utama */
+      padding: 4mm; /* Jarak bingkai utama */
       display: flex;
       flex-direction: column;
       text-align: center;
@@ -76,29 +77,20 @@
       background-position: center;
     }
 
-    /* Print Configuration - FULL BLEED A4 LANDSCAPE */
+    /* Base Print CSS, Page Size dynamic override via JS */
     @media print {
-      @page { 
-        size: A4 landscape; 
-        margin: 0 !important; 
-      }
-      
       html, body { 
-        width: 297mm !important; 
-        height: 210mm !important; 
         margin: 0 !important; 
         padding: 0 !important; 
         background: white !important; 
         -webkit-print-color-adjust: exact !important; 
         print-color-adjust: exact !important; 
       }
-
-      /* Sembunyikan semua UI dan Panel yang tidak perlu dicetak */
+      
       header, #form-panel, #loginModal, #premiumModal, #splash-screen, .print\:hidden {
         display: none !important;
       }
 
-      /* Reset wrapper agar tidak mengganggu layout cetak dan menghilangkan warna hitam (slate-800) */
       #main-app, .flex-1, #preview-section, #preview-viewport, #cert-wrapper {
         display: block !important;
         position: static !important;
@@ -111,13 +103,10 @@
         overflow: visible !important;
       }
 
-      /* Paksa kontainer sertifikat berada di pojok kiri atas dan pas A4 */
       #cert-container {
         position: absolute !important;
         top: 0 !important;
         left: 0 !important;
-        width: 297mm !important;
-        height: 210mm !important;
         margin: 0 !important;
         padding: 0 !important;
         box-shadow: none !important;
@@ -125,6 +114,9 @@
         page-break-after: avoid !important;
         page-break-inside: avoid !important;
       }
+      
+      .landscape { width: 297mm !important; height: 210mm !important; }
+      .portrait { width: 210mm !important; height: 297mm !important; }
 
       ::-webkit-scrollbar { display: none !important; }
     }
@@ -138,15 +130,15 @@
       background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     }
 
-    /* Fade Transition */
     .fade-enter { opacity: 0; transform: scale(0.98); }
     .fade-enter-active { opacity: 1; transform: scale(1); transition: opacity 400ms, transform 400ms; }
-    
     .thumb-active { border-color: var(--primary) !important; ring: 2px; ring-color: var(--primary); transform: scale(1.05); }
 
-    /* Main app fade in */
     #main-app { opacity: 0; transition: opacity 0.8s ease-in-out; }
     #main-app.loaded { opacity: 1; }
+  </style>
+  <style id="dynamic-print-style">
+    @page { size: A4 landscape; margin: 0; }
   </style>
 </head>
 <body class="overflow-hidden h-screen bg-[#0f172a] select-none" oncontextmenu="return false;">
@@ -162,7 +154,7 @@
               <i class="fas fa-crown text-2xl"></i>
           </div>
           <h3 class="text-lg font-bold text-slate-800 mb-2">Mode Premium Diperlukan</h3>
-          <p class="text-sm text-slate-600 mb-6 leading-relaxed">Anda sedang menggunakan mode gratis dengan cap air. Untuk membuka semua tema tanpa batas dan menghilangkan cap air, silakan dapatkan token Premium.</p>
+          <p class="text-sm text-slate-600 mb-6 leading-relaxed">Anda sedang menggunakan mode gratis dengan cap air. Untuk membuka semua tema dan fitur penuh tanpa batas serta menghilangkan cap air, silakan dapatkan token Premium.</p>
           
           <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-6">
               <p class="text-xs font-semibold text-emerald-800 mb-2">Hubungi WhatsApp Ghassan:</p>
@@ -177,7 +169,7 @@
       </div>
   </div>
 
-  <!-- ================= MODAL LOGIN (Hidden by default) ================= -->
+  <!-- ================= MODAL LOGIN ================= -->
   <div id="loginModal" class="hidden fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center transition-all duration-300">
     <div id="loginView" class="flex flex-col items-center justify-center p-6 w-full max-w-md mx-auto relative transform scale-95 transition-transform duration-300">
         
@@ -189,7 +181,7 @@
             <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-green-600"></div>
             
             <div class="bg-slate-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-slate-100">
-                <img src="https://lh3.googleusercontent.com/d/1LFYbCI1A83jrD4OA9NyuANANMmyZeePL" class="w-16 h-16 object-contain drop-shadow-md" alt="Logo" onerror="this.style.display='none'">
+                <img src="https://lh3.googleusercontent.com/d/18DdprC1orfPIODK3MwtdW0QCgSPpD5p2" class="w-16 h-16 object-contain drop-shadow-md" alt="Logo Ghassan" onerror="this.style.display='none'">
             </div>
             
             <h2 class="text-2xl font-bold text-center text-gray-800 mb-2">Portal Security</h2>
@@ -200,7 +192,7 @@
                     <label class="text-xs font-semibold text-gray-700 mb-1.5 block">Sandi Akses</label>
                     <div class="relative">
                         <i class="fas fa-lock absolute left-4 top-3.5 text-gray-400"></i>
-                        <input type="password" id="password" class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 text-sm outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all font-medium" placeholder="Masukkan password">
+                        <input type="password" id="password" class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 text-sm outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all font-medium" placeholder="Masukkan token premium">
                     </div>
                 </div>
             </div>
@@ -210,14 +202,13 @@
                 <i class="fas fa-arrow-right"></i>
             </button>
         </div>
-        <p class="text-white text-xs mt-8 opacity-80">© 2026 Chatimgrafika. All rights reserved.</p>
+        <p class="text-white text-xs mt-8 opacity-80">© 2026 Ghassan. All rights reserved.</p>
     </div>
   </div>
 
   <!-- ================= SPLASH SCREEN ================= -->
   <div id="splash-screen" class="fixed inset-0 z-[100] bg-[#0f172a] flex flex-col items-center justify-center p-6 text-center transition-all duration-700">
     <div class="w-32 mb-8 relative">
-      <!-- Glow Effect -->
       <div class="absolute inset-0 bg-amber-500 blur-2xl opacity-20 rounded-full animate-pulse"></div>
       <img src="https://lh3.googleusercontent.com/d/18DdprC1orfPIODK3MwtdW0QCgSPpD5p2" alt="Logo Ghassan" class="relative z-10 w-full h-full object-contain drop-shadow-[0_0_15px_rgba(217,119,6,0.6)] animate-bounce" style="animation-duration: 2s;" />
     </div>
@@ -236,7 +227,7 @@
     <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-sm p-4 border-b border-slate-200 flex justify-between items-center shadow-sm flex-shrink-0">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 flex items-center justify-center">
-          <img src="https://lh3.googleusercontent.com/d/18DdprC1orfPIODK3MwtdW0QCgSPpD5p2" alt="Chatimgrafika" class="w-full h-full object-contain" />
+          <img src="https://lh3.googleusercontent.com/d/18DdprC1orfPIODK3MwtdW0QCgSPpD5p2" alt="Ghassan Logo" class="w-full h-full object-contain" />
         </div>
         <div>
           <h1 class="text-sm font-black text-slate-800 tracking-tight uppercase">Ghassan</h1>
@@ -283,6 +274,15 @@
           <!-- Global Attributes -->
           <section class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
             <h2 class="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3" data-i18n="secAttr">Atribut Dokumen</h2>
+            
+            <div class="mb-4">
+               <label class="block text-[10px] font-semibold text-slate-400 mb-1" data-i18n="lblOrientasi">Orientasi Dokumen</label>
+               <div class="flex gap-2">
+                  <button onclick="setOrientation('landscape')" id="btn-landscape" class="flex-1 bg-white border border-emerald-500 text-emerald-600 p-2 rounded-lg text-xs font-semibold transition-colors shadow-sm">Landscape (A4)</button>
+                  <button onclick="setOrientation('portrait')" id="btn-portrait" class="flex-1 bg-white border border-slate-200 text-slate-600 p-2 rounded-lg text-xs font-semibold hover:border-emerald-500 hover:text-emerald-600 transition-colors shadow-sm">Portrait (A4)</button>
+               </div>
+            </div>
+
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-[10px] font-semibold text-slate-400 mb-1" data-i18n="lblNomor">Nomor Sertifikat</label>
@@ -305,11 +305,20 @@
                 </select>
               </div>
               <div class="col-span-2">
-                <label class="block text-[10px] font-semibold text-slate-400 mb-1" data-i18n="lblFont">Kombinasi Font</label>
-                <select id="b_font" class="input-field w-full p-2.5 bg-white border border-slate-200 rounded-lg text-xs focus:border-emerald-500 focus:ring-2 focus:ring-emerald-50 outline-none shadow-sm transition-all" onchange="changeFontCombo()">
-                  <option value="0" data-i18n="fontCombo0">Klasik Formal</option>
-                  <option value="1" data-i18n="fontCombo1">Mewah & Elegan</option>
-                  <option value="2" data-i18n="fontCombo2">Tradisional</option>
+                <label class="block text-[10px] font-semibold text-slate-400 mb-1" data-i18n="lblFont">Kombinasi Font (12 Variasi)</label>
+                <select id="b_font" class="input-field w-full p-2.5 bg-white border border-slate-200 rounded-lg text-xs focus:border-emerald-500 focus:ring-2 focus:ring-emerald-50 outline-none shadow-sm transition-all font-semibold" onchange="changeFontCombo()">
+                  <option value="0" data-i18n="fontCombo0">1. Klasik Formal (Playfair)</option>
+                  <option value="1" data-i18n="fontCombo1">2. Mewah & Elegan (Cinzel)</option>
+                  <option value="2" data-i18n="fontCombo2">3. Tradisional Islam (Lora)</option>
+                  <option value="3" data-i18n="fontCombo3">4. Modern Bersih (Roboto Slab)</option>
+                  <option value="4" data-i18n="fontCombo4">5. Akademik Vintage (Cormorant)</option>
+                  <option value="5" data-i18n="fontCombo5">6. Geometris Tegas (Oswald)</option>
+                  <option value="6" data-i18n="fontCombo6">7. Minimalis Lembut (Merriweather)</option>
+                  <option value="7" data-i18n="fontCombo7">8. Warisan Kerajaan (Playfair / Montserrat)</option>
+                  <option value="8" data-i18n="fontCombo8">9. Kontemporer (Poppins)</option>
+                  <option value="9" data-i18n="fontCombo9">10. Serif Klasik Dinamis (Lora / Open Sans)</option>
+                  <option value="10" data-i18n="fontCombo10">11. Distingtif Karakter (Cinzel / Lato)</option>
+                  <option value="11" data-i18n="fontCombo11">12. Serif Minimalis (Cormorant / Roboto)</option>
                 </select>
               </div>
             </div>
@@ -427,7 +436,7 @@
           <!-- Wrapper transisi skala -->
           <div class="w-full flex justify-center items-start pb-24 transition-all" id="cert-wrapper">
             <!-- DOM Sertifikat Aktual -->
-            <div class="certificate-container transform transition-transform duration-300" id="cert-container" style="transform-origin: top center;">
+            <div class="certificate-container landscape transform transition-transform duration-300" id="cert-container" style="transform-origin: top center;">
               <!-- Content will be injected here by JS -->
             </div>
           </div>
@@ -475,36 +484,28 @@
     let previewScale = 1.0;
     let isPreviewVisible = true;
     let currentLanguage = 'id';
-    let isPremium = localStorage.getItem('cv_is_premium') === 'true'; // Global Premium State
+    let currentOrientation = 'landscape';
+    let isPremium = localStorage.getItem('cv_is_premium') === 'true'; 
     
     // Images Base64
     let imgLogo = null;
     let imgTtd = null;
     let imgBg = null;
 
-    // --- Font Combos Definition ---
+    // --- 12 Font Combos Definition ---
     const fontCombos = [
-      {
-        id: 0,
-        title: "'Playfair Display', serif",
-        body: "'Inter', sans-serif",
-        arabic: "'Amiri', serif",
-        script: "'Great Vibes', cursive"
-      },
-      {
-        id: 1,
-        title: "'Cinzel', serif",
-        body: "'Montserrat', sans-serif",
-        arabic: "'Cairo', sans-serif",
-        script: "'Alex Brush', cursive"
-      },
-      {
-        id: 2,
-        title: "'Lora', serif",
-        body: "'Lora', serif",
-        arabic: "'Noto Naskh Arabic', serif",
-        script: "'Dancing Script', cursive"
-      }
+      { id: 0, title: "'Playfair Display', serif", body: "'Inter', sans-serif", arabic: "'Amiri', serif", script: "'Great Vibes', cursive" },
+      { id: 1, title: "'Cinzel', serif", body: "'Montserrat', sans-serif", arabic: "'Cairo', sans-serif", script: "'Alex Brush', cursive" },
+      { id: 2, title: "'Lora', serif", body: "'Lora', serif", arabic: "'Noto Naskh Arabic', serif", script: "'Dancing Script', cursive" },
+      { id: 3, title: "'Roboto Slab', serif", body: "'Roboto', sans-serif", arabic: "'Tajawal', sans-serif", script: "'Satisfy', cursive" },
+      { id: 4, title: "'Cormorant Garamond', serif", body: "'Open Sans', sans-serif", arabic: "'Scheherazade New', serif", script: "'Parisienne', cursive" },
+      { id: 5, title: "'Oswald', sans-serif", body: "'Lato', sans-serif", arabic: "'Reem Kufi', sans-serif", script: "'Pacifico', cursive" },
+      { id: 6, title: "'Merriweather', serif", body: "'Poppins', sans-serif", arabic: "'Aref Ruqaa', serif", script: "'Courgette', cursive" },
+      { id: 7, title: "'Playfair Display', serif", body: "'Montserrat', sans-serif", arabic: "'Amiri', serif", script: "'Parisienne', cursive" },
+      { id: 8, title: "'Poppins', sans-serif", body: "'Inter', sans-serif", arabic: "'Cairo', sans-serif", script: "'Satisfy', cursive" },
+      { id: 9, title: "'Lora', serif", body: "'Open Sans', sans-serif", arabic: "'Noto Naskh Arabic', serif", script: "'Great Vibes', cursive" },
+      { id: 10, title: "'Cinzel', serif", body: "'Lato', sans-serif", arabic: "'Tajawal', sans-serif", script: "'Dancing Script', cursive" },
+      { id: 11, title: "'Cormorant Garamond', serif", body: "'Roboto', sans-serif", arabic: "'Scheherazade New', serif", script: "'Alex Brush', cursive" }
     ];
 
     // --- Dictionary Translasi ---
@@ -517,14 +518,24 @@
         secBg: "Latar Belakang Gambar",
         btnMakkah: "Ka'bah",
         btnNabawi: "Nabawi",
+        lblOrientasi: "Orientasi Dokumen",
         lblNomor: "Nomor Sertifikat",
         lblTanggal: "Tanggal Terbit",
         lblLokasi: "Lokasi Pembuatan",
         lblJenis: "Jenis Badal",
-        lblFont: "Kombinasi Font",
-        fontCombo0: "Klasik Formal",
-        fontCombo1: "Mewah & Elegan",
-        fontCombo2: "Tradisional",
+        lblFont: "Kombinasi Font (12 Variasi)",
+        fontCombo0: "1. Klasik Formal (Playfair)",
+        fontCombo1: "2. Mewah & Elegan (Cinzel)",
+        fontCombo2: "3. Tradisional Islam (Lora)",
+        fontCombo3: "4. Modern Bersih (Roboto Slab)",
+        fontCombo4: "5. Akademik Vintage (Cormorant)",
+        fontCombo5: "6. Geometris Tegas (Oswald)",
+        fontCombo6: "7. Minimalis Lembut (Merriweather)",
+        fontCombo7: "8. Warisan Kerajaan (Playfair / Montserrat)",
+        fontCombo8: "9. Kontemporer (Poppins)",
+        fontCombo9: "10. Serif Klasik Dinamis (Lora / Open Sans)",
+        fontCombo10: "11. Distingtif Karakter (Cinzel / Lato)",
+        fontCombo11: "12. Serif Minimalis (Cormorant / Roboto)",
         secPelaksanaan: "Data Pelaksanaan",
         lblPeserta: "Nama Peserta Badal (Yang Dibadalkan)",
         phPeserta: "Contoh: Alm. H. Ahmad bin Abdullah",
@@ -562,14 +573,24 @@
         secBg: "خلفية الصورة",
         btnMakkah: "الكعبة",
         btnNabawi: "النبوي",
+        lblOrientasi: "اتجاه المستند",
         lblNomor: "رقم الشهادة",
         lblTanggal: "تاريخ الإصدار",
         lblLokasi: "مكان الإصدار",
         lblJenis: "نوع البدل",
-        lblFont: "مجموعة الخطوط",
-        fontCombo0: "كلاسيكي رسمي",
-        fontCombo1: "فاخر وأنيق",
-        fontCombo2: "تقليدي",
+        lblFont: "مجموعة الخطوط (12 نوع)",
+        fontCombo0: "1. كلاسيكي رسمي",
+        fontCombo1: "2. فاخر وأنيق",
+        fontCombo2: "3. تقليدي إسلامي",
+        fontCombo3: "4. حديث ونظيف",
+        fontCombo4: "5. أكاديمي كلاسيكي",
+        fontCombo5: "6. هندسي بارز",
+        fontCombo6: "7. بسيط وناعم",
+        fontCombo7: "8. تراث ملكي",
+        fontCombo8: "9. معاصر",
+        fontCombo9: "10. كلاسيكي ديناميكي",
+        fontCombo10: "11. طابع مميز",
+        fontCombo11: "12. بسيط ومريح",
         secPelaksanaan: "بيانات التنفيذ",
         lblPeserta: "اسم المعتمر عنه (المتوفى/المريض)",
         phPeserta: "مثال: المرحوم أحمد بن عبد الله",
@@ -646,12 +667,8 @@
     window.addEventListener('beforeprint', () => {
       const container = document.getElementById('cert-container');
       const wrapper = document.getElementById('cert-wrapper');
-      if(container) {
-        container.style.transform = 'none';
-      }
-      if(wrapper) {
-        wrapper.style.height = 'auto';
-      }
+      if(container) { container.style.transform = 'none'; }
+      if(wrapper) { wrapper.style.height = 'auto'; }
     });
 
     window.addEventListener('afterprint', () => {
@@ -675,6 +692,7 @@
 
       renderThemeSelector();
       changeFontCombo(); 
+      updateOrientationUI();
       
       const dateInput = document.getElementById('b_tanggal');
       const numInput = document.getElementById('b_nomor');
@@ -697,6 +715,34 @@
       loadSavedData();
       calculateAutoScale(); 
       renderPreview();
+    }
+
+    // --- Orientation Toggles ---
+    function setOrientation(mode) {
+      currentOrientation = mode;
+      
+      // Update dynamic print style
+      const printStyle = document.getElementById('dynamic-print-style');
+      if (printStyle) {
+         printStyle.innerHTML = `@page { size: A4 ${mode}; margin: 0; }`;
+      }
+      
+      updateOrientationUI();
+      calculateAutoScale();
+      queueAutoSave();
+    }
+
+    function updateOrientationUI() {
+      const btnL = document.getElementById('btn-landscape');
+      const btnP = document.getElementById('btn-portrait');
+      
+      if(currentOrientation === 'landscape') {
+        btnL.className = "flex-1 bg-white border border-emerald-500 text-emerald-600 p-2 rounded-lg text-xs font-semibold shadow-sm";
+        btnP.className = "flex-1 bg-white border border-slate-200 text-slate-600 p-2 rounded-lg text-xs font-semibold hover:border-emerald-500 hover:text-emerald-600 transition-colors shadow-sm";
+      } else {
+        btnP.className = "flex-1 bg-white border border-emerald-500 text-emerald-600 p-2 rounded-lg text-xs font-semibold shadow-sm";
+        btnL.className = "flex-1 bg-white border border-slate-200 text-slate-600 p-2 rounded-lg text-xs font-semibold hover:border-emerald-500 hover:text-emerald-600 transition-colors shadow-sm";
+      }
     }
 
     // --- Logic Mengubah Font Combo ---
@@ -769,9 +815,7 @@
     }
 
 
-    // --- Logic Login & Intercept Print ---
-    // (Pencegat shortcut Print sudah digabungkan di bagian Anti-Copy Protection di atas)
-
+    // --- Logic Login ---
     function showLoginModal() {
         const modal = document.getElementById('loginModal');
         const view = document.getElementById('loginView');
@@ -812,16 +856,11 @@
         btn.disabled = true;
 
         try {
-            // Me-resolve / mendecode kembali API URL yang disandikan
             const apiUrl = atob(_0x1a2b);
-
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ 
-                    action: 'verify', 
-                    token: pwdInput 
-                })
+                body: JSON.stringify({ action: 'verify', token: pwdInput })
             });
 
             const result = await response.json();
@@ -831,7 +870,7 @@
                 isPremium = true;
                 renderPreview(); 
                 closeLoginModal();
-                alert(result.message); // Menampilkan pesan sukses dari backend
+                alert(result.message); 
                 setTimeout(() => { executePrint(); }, 400);
             } else {
                 alert(result.message || "Sandi akses/token yang Anda masukkan SALAH!");
@@ -871,9 +910,7 @@
           let hStr = new Intl.DateTimeFormat(localeH, optionsH).format(d);
           let cleanHStr = hStr.replace(/\s*(هـ|م|AH|SM|EH|H|M|CE|BCE)\s*$/i, '');
           hijriah = cleanHStr.trim() + (isAr ? ' هـ' : ' H');
-        } catch(e) {
-          hijriah = '';
-        }
+        } catch(e) { hijriah = ''; }
 
         const separator = isAr ? '، الموافق ' : ', bertepatan dengan ';
         const comma = isAr ? '، ' : ', ';
@@ -973,7 +1010,11 @@
 
     function saveData() {
       const inputs = document.querySelectorAll('.input-field');
-      const data = { template: currentTemplate, fields: {} };
+      const data = { 
+        template: currentTemplate, 
+        orientation: currentOrientation,
+        fields: {} 
+      };
       inputs.forEach(input => { data.fields[input.id] = input.value; });
       localStorage.setItem('bu_data', JSON.stringify(data));
     }
@@ -989,6 +1030,7 @@
         try {
           const data = JSON.parse(savedData);
           if (data.template !== undefined) { currentTemplate = data.template; renderThemeSelector(); }
+          if (data.orientation !== undefined) { setOrientation(data.orientation); }
           if (data.fields) {
             Object.keys(data.fields).forEach(id => {
               const el = document.getElementById(id);
@@ -1010,6 +1052,7 @@
         localStorage.removeItem('bu_bg');
         imgLogo = null; imgTtd = null; imgBg = null;
         document.querySelectorAll('.input-field').forEach(el => el.value = '');
+        setOrientation('landscape');
         updateImageUI();
         init();
       }
@@ -1029,7 +1072,10 @@
         wrapper.style.height = 'auto';
       } else {
         container.style.transform = `scale(${previewScale})`;
-        wrapper.style.height = `${794 * previewScale}px`; 
+        
+        // Sesuaikan wrapper tinggi berdasarkan proporsi agar bisa discroll dengan baik
+        const baseHeight = currentOrientation === 'landscape' ? 794 : 1123;
+        wrapper.style.height = `${baseHeight * previewScale}px`; 
       }
     }
 
@@ -1037,7 +1083,8 @@
       const viewport = document.getElementById('preview-viewport');
       if (!viewport || !isPreviewVisible) return;
       
-      const certBaseWidth = 1123; 
+      // Lebar dasar disesuaikan dengan orientasi
+      const certBaseWidth = currentOrientation === 'landscape' ? 1123 : 794; 
       const paddingX = window.innerWidth < 768 ? 32 : 80; 
       
       let autoScale = (viewport.clientWidth - paddingX) / certBaseWidth;
@@ -1086,24 +1133,26 @@
       const container = document.getElementById('cert-container');
       const theme = templates[currentTemplate];
       const isAr = currentLanguage === 'ar';
+      const isPortrait = currentOrientation === 'portrait';
       const t = translations[currentLanguage];
       
       container.classList.remove('fade-enter-active');
       container.classList.add('fade-enter');
       
       setTimeout(() => {
-        const flagID = `<div class="shadow-sm border border-black/20 overflow-hidden" style="width: 30mm; height: 20mm;"><img src="https://lh3.googleusercontent.com/d/1B474IkUFpGbX_lLD924dl-tmEGw1dgt8" class="w-full h-full object-cover" crossorigin="anonymous" /></div>`;
-        const flagSA = `<div class="shadow-sm border border-black/20 overflow-hidden" style="width: 30mm; height: 20mm;"><img src="https://lh3.googleusercontent.com/d/1X8HwnPQvRuFuFM1c2tNuTd6Q7OEkRfdl" class="w-full h-full object-cover" crossorigin="anonymous" /></div>`;
+        // Dinamika Ukuran Elemen Berdasarkan Orientasi
+        const flagCSS = isPortrait ? 'width: 25mm; height: 16mm;' : 'width: 30mm; height: 20mm;';
+        
+        const flagID = `<div class="shadow-sm border border-black/20 overflow-hidden" style="${flagCSS}"><img src="https://lh3.googleusercontent.com/d/1B474IkUFpGbX_lLD924dl-tmEGw1dgt8" class="w-full h-full object-cover" crossorigin="anonymous" /></div>`;
+        const flagSA = `<div class="shadow-sm border border-black/20 overflow-hidden" style="${flagCSS}"><img src="https://lh3.googleusercontent.com/d/1X8HwnPQvRuFuFM1c2tNuTd6Q7OEkRfdl" class="w-full h-full object-cover" crossorigin="anonymous" /></div>`;
 
         const logoHtml = imgLogo ? `<img src="${imgLogo}" class="h-16 w-16 object-contain" />` : `<div class="w-16 h-16 border-2 border-dashed border-current opacity-30 flex items-center justify-center text-[8px]">LOGO</div>`;
-        
-        const ttdHtml = imgTtd ? `<img src="${imgTtd}" class="absolute -bottom-4 left-1/2 -translate-x-1/2 h-32 w-56 object-contain mix-blend-multiply pointer-events-none z-30" />` : '';
+        const ttdHtml = imgTtd ? `<img src="${imgTtd}" class="absolute -bottom-4 left-1/2 -translate-x-1/2 h-28 w-48 object-contain mix-blend-multiply pointer-events-none z-30" />` : '';
 
         const patternHtml = theme.pattern ? `<div class="pattern-overlay"></div>` : '';
         
-        // --- Integrasi Latar Belakang Custom ---
         let activeBgImg = imgBg || theme.bgImage;
-        let activeBgOpacity = imgBg ? 'opacity-25' : theme.imageOpacity; // Pakai opacity 25% jika custom bg
+        let activeBgOpacity = imgBg ? 'opacity-25' : theme.imageOpacity; 
         const bgImageHtml = activeBgImg ? `<div class="absolute inset-0 z-0 ${activeBgOpacity} pointer-events-none" style="background-image: url('${activeBgImg}'); background-size: cover; background-position: center;"></div>` : '';
 
         const dateInputVal = document.getElementById('b_tanggal').value;
@@ -1113,7 +1162,7 @@
         const linkDokumentasi = document.getElementById('b_link').value.trim();
         let qrDisplayHtml = `
           <div class="w-20 h-20 border-2 border-current p-1 opacity-50 flex items-center justify-center flex-col rounded">
-            <i data-lucide="qr-code" class="w-10 h-10"></i>
+            <i data-lucide="qr-code" class="w-8 h-8 md:w-10 md:h-10"></i>
             <span class="text-[6px] mt-1 font-sans uppercase font-bold text-center">${t.qrText}</span>
           </div>`;
           
@@ -1132,10 +1181,22 @@
         const valMiqot = val('b_miqot', 'Bir Ali (Zulhulaifah)');
         const displayMiqot = isAr ? (miqotMapAr[valMiqot] || valMiqot) : valMiqot;
 
+        // Watermark scale adaptasi orientasi
+        const wmSize = isPortrait ? 'text-[100px]' : 'text-[150px]';
         const watermarkHtml = !isPremium ? `
           <div class="absolute inset-0 flex items-center justify-center z-[100] pointer-events-none overflow-hidden">
-              <span class="text-[150px] font-black text-slate-800 opacity-[0.06] transform -rotate-45 select-none tracking-widest drop-shadow-md">GHASSAN</span>
+              <span class="${wmSize} font-black text-slate-800 opacity-[0.06] transform -rotate-45 select-none tracking-widest drop-shadow-md">GHASSAN</span>
           </div>` : '';
+
+        // Penyesuaian Style Teks untuk Landscape/Portrait
+        const titleTextClass = isPortrait ? 'text-3xl md:text-4xl' : 'text-4xl md:text-5xl';
+        const subtitleTextClass = isPortrait ? 'text-lg md:text-xl' : 'text-xl md:text-2xl';
+        const nameTextClass = isPortrait ? 'text-4xl md:text-6xl my-3' : 'text-5xl md:text-7xl my-1';
+        const bodyTextClass = isPortrait ? 'text-xs md:text-sm mt-3 leading-relaxed max-w-xl mx-auto px-4' : 'text-sm md:text-base mt-2 max-w-4xl mx-auto leading-relaxed';
+        const hadithSizeClass = isPortrait ? 'text-xl md:text-2xl' : 'text-2xl md:text-3xl';
+        const flagGapClass = isPortrait ? 'gap-3 md:gap-4' : 'gap-6 md:gap-8';
+        const maxWidthTitle = isPortrait ? 'max-w-[320px]' : 'max-w-[500px]';
+        const spacerSize = isPortrait ? 'w-12 h-12' : 'w-16 h-16';
 
         const html = `
           <div class="cert-inner ${theme.bgOut}" ${isAr ? 'dir="rtl"' : ''}>
@@ -1147,61 +1208,62 @@
               
               <!-- Header Row -->
               <div class="w-full flex justify-between items-start relative z-20">
-                <div class="w-16 h-16"></div> 
-                <div class="${theme.textMain} cert-body-text opacity-80 text-xs font-bold uppercase tracking-widest text-center mt-2">
+                <div class="${spacerSize}"></div> 
+                <div class="${theme.textMain} cert-body-text opacity-80 text-xs font-bold uppercase tracking-widest text-center mt-2 px-2 leading-relaxed">
                   ${val('b_travel', t.lblTravel)}
                 </div>
-                <div class="w-16 h-16 flex justify-end">
+                <div class="${spacerSize} flex justify-end">
                   ${logoHtml}
                 </div>
               </div>
 
               <!-- Title Section with Flags -->
-              <div class="flex justify-center items-center gap-6 md:gap-8 relative z-20 -mt-4 md:-mt-6 w-full" ${isAr ? 'dir="ltr"' : ''}>
+              <div class="flex justify-center items-center ${flagGapClass} relative z-20 -mt-2 md:-mt-6 w-full" ${isAr ? 'dir="ltr"' : ''}>
                 <div class="flex-shrink-0 pb-4">${flagID}</div>
                 
-                <div class="text-center flex-1 max-w-[500px]">
-                  <h1 class="text-4xl md:text-5xl uppercase tracking-widest cert-title-text ${theme.title}">
+                <div class="text-center flex-1 ${maxWidthTitle}">
+                  <h1 class="${titleTextClass} uppercase tracking-widest cert-title-text ${theme.title} leading-tight">
                     ${t.certTitle}
                   </h1>
-                  <h2 class="text-xl md:text-2xl mt-1 tracking-widest uppercase font-semibold cert-title-text ${theme.accent}">
+                  <h2 class="${subtitleTextClass} mt-1 tracking-widest uppercase font-semibold cert-title-text ${theme.accent}">
                     ${displayJenis}
                   </h2>
-                  <div class="w-48 h-1 ${theme.bgInner} mx-auto mt-2 rounded-full opacity-50 border-t border-current"></div>
-                  <p class="mt-1 text-sm ${theme.textMain} cert-body-text opacity-80">${t.lblNomor}: ${val('b_nomor', 'BU-20260417-001')}</p>
+                  <div class="w-32 md:w-48 h-1 ${theme.bgInner} mx-auto mt-2 rounded-full opacity-50 border-t border-current"></div>
+                  <p class="mt-1 text-xs md:text-sm ${theme.textMain} cert-body-text opacity-80">${t.lblNomor}: ${val('b_nomor', 'BU-20260417-001')}</p>
                 </div>
                 
                 <div class="flex-shrink-0 pb-4">${flagSA}</div>
               </div>
 
               <!-- Body Section -->
-              <div class="text-center relative z-20 flex-1 flex flex-col justify-center w-full my-1">
-                <p class="text-sm md:text-base ${theme.textMain} cert-body-text mb-1 italic">${t.certGivenTo}</p>
-                <h3 class="text-5xl md:text-7xl cert-script-text ${theme.accent} my-1 leading-tight w-full px-2">
+              <div class="text-center relative z-20 flex-1 flex flex-col justify-center w-full my-1 md:my-0">
+                <p class="text-xs md:text-sm ${theme.textMain} cert-body-text mb-1 italic px-4">${t.certGivenTo}</p>
+                
+                <h3 class="${nameTextClass} cert-script-text ${theme.accent} leading-tight w-full px-2">
                   ${val('b_peserta', t.lblPeserta)}
                 </h3>
                 
-                <p class="text-sm md:text-base ${theme.textMain} cert-body-text mt-2 max-w-4xl mx-auto leading-relaxed">
+                <p class="${bodyTextClass} ${theme.textMain} cert-body-text">
                   ${t.certDesc1} <strong class="cert-title-text">${displayJenis}</strong> 
                   ${t.certDesc2} <strong class="cert-title-text">${displayMiqot}</strong> 
                   ${t.certDesc3} <strong class="cert-title-text">${val('b_waktu', '....................')}</strong>${isAr ? '،' : ','}<br> 
                   ${t.certDesc4} <br>
-                  <span class="text-lg font-bold mt-1 inline-block border-b border-current border-dashed pb-1 px-4 cert-title-text">${val('b_pelaksana', t.lblPelaksana)}</span>
+                  <span class="text-base md:text-lg font-bold mt-2 inline-block border-b border-current border-dashed pb-1 px-4 cert-title-text">${val('b_pelaksana', t.lblPelaksana)}</span>
                 </p>
               </div>
 
               <!-- Hadith Section -->
-              <div class="w-full max-w-4xl mx-auto relative z-20 border-y border-current py-2 opacity-80 ${theme.textMain}">
-                <p class="cert-arabic-text text-2xl md:text-3xl leading-loose mb-0" dir="rtl">
+              <div class="w-full max-w-4xl mx-auto relative z-20 border-y border-current py-2 opacity-80 ${theme.textMain} ${isPortrait ? 'mb-2' : ''}">
+                <p class="cert-arabic-text ${hadithSizeClass} leading-loose mb-0" dir="rtl">
                   حج عن أبيك واعتمر
                 </p>
-                <p class="text-[10px] md:text-xs leading-relaxed px-4 cert-body-text" ${isAr ? 'dir="rtl"' : 'dir="ltr"'}>
+                <p class="text-[9px] md:text-xs leading-relaxed px-4 cert-body-text" ${isAr ? 'dir="rtl"' : 'dir="ltr"'}>
                   ${t.hadithTranslation}
                 </p>
               </div>
 
               <!-- Footer Section -->
-              <div class="w-full flex justify-between items-end relative z-20 mt-2">
+              <div class="w-full flex justify-between items-end relative z-20 ${isPortrait ? 'mt-0' : 'mt-2'} px-2">
                 
                 <!-- QR Dokumentasi -->
                 <div class="flex flex-col items-center justify-end pb-1 ${theme.textMain} cert-body-text">
@@ -1209,15 +1271,15 @@
                 </div>
 
                 <!-- Signature -->
-                <div class="text-center w-[300px] ${theme.textMain} cert-body-text">
-                  <p class="text-[10px] md:text-xs mb-1 leading-relaxed px-2" ${isAr ? 'dir="rtl"' : 'dir="ltr"'}>${formattedDateFull}</p>
-                  <p class="text-xs font-bold uppercase mb-12">${val('b_travel', t.lblTravel)}</p>
+                <div class="text-center w-[250px] md:w-[300px] ${theme.textMain} cert-body-text">
+                  <p class="text-[9px] md:text-[10px] mb-1 leading-relaxed px-2" ${isAr ? 'dir="rtl"' : 'dir="ltr"'}>${formattedDateFull}</p>
+                  <p class="text-[10px] md:text-xs font-bold uppercase mb-10 md:mb-12">${val('b_travel', t.lblTravel)}</p>
                   
                   <div class="relative w-full flex flex-col items-center">
                     ${ttdHtml}
-                    <p class="font-bold border-b border-current inline-block pb-0.5 px-4 relative z-20 cert-title-text">${val('b_penandatangan', t.lblPenandatangan)}</p>
+                    <p class="font-bold border-b border-current inline-block pb-0.5 px-4 relative z-20 cert-title-text text-sm">${val('b_penandatangan', t.lblPenandatangan)}</p>
                   </div>
-                  <p class="text-[10px] mt-1 uppercase tracking-wider">${val('b_jabatan', t.lblJabatan)}</p>
+                  <p class="text-[9px] md:text-[10px] mt-1 uppercase tracking-wider">${val('b_jabatan', t.lblJabatan)}</p>
                 </div>
 
               </div>
@@ -1227,7 +1289,7 @@
         `;
 
         container.innerHTML = html;
-        container.className = `certificate-container ${theme.bgOut}`;
+        container.className = `certificate-container ${currentOrientation} ${theme.bgOut}`;
         lucide.createIcons();
         
         requestAnimationFrame(() => {
