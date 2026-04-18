@@ -94,7 +94,7 @@
       }
 
       /* Sembunyikan semua UI dan Panel yang tidak perlu dicetak */
-      header, #form-panel, #loginModal, #splash-screen, .print\:hidden {
+      header, #form-panel, #loginModal, #premiumModal, #splash-screen, .print\:hidden {
         display: none !important;
       }
 
@@ -149,7 +149,33 @@
     #main-app.loaded { opacity: 1; }
   </style>
 </head>
-<body class="overflow-hidden h-screen bg-[#0f172a]">
+<body class="overflow-hidden h-screen bg-[#0f172a] select-none" oncontextmenu="return false;">
+
+  <!-- ================= MODAL PREMIUM / WATERMARK POPUP ================= -->
+  <div id="premiumModal" class="hidden fixed inset-0 z-[250] bg-black/60 backdrop-blur-sm flex items-center justify-center transition-all duration-300">
+      <div class="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 text-center shadow-2xl relative">
+          <button onclick="document.getElementById('premiumModal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition-colors">
+              <i class="fas fa-times text-lg"></i>
+          </button>
+          
+          <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 mt-2 border border-amber-200 shadow-inner">
+              <i class="fas fa-crown text-2xl"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800 mb-2">Mode Premium Diperlukan</h3>
+          <p class="text-sm text-slate-600 mb-6 leading-relaxed">Anda sedang menggunakan mode gratis dengan cap air. Untuk membuka semua tema tanpa batas dan menghilangkan cap air, silakan dapatkan token Premium.</p>
+          
+          <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-6">
+              <p class="text-xs font-semibold text-emerald-800 mb-2">Hubungi WhatsApp Ghassan:</p>
+              <a href="https://wa.me/62895417778539" target="_blank" class="text-lg font-bold text-emerald-600 hover:text-emerald-700 flex items-center justify-center gap-2 transition-all hover:scale-105">
+                  <i class="fab fa-whatsapp text-2xl"></i> +62 895-4177-78539
+              </a>
+          </div>
+          
+          <button onclick="document.getElementById('premiumModal').classList.add('hidden'); showLoginModal();" class="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold rounded-xl py-3 shadow-lg hover:shadow-xl transition-all text-sm mb-2">
+              Sudah punya token? Login
+          </button>
+      </div>
+  </div>
 
   <!-- ================= MODAL LOGIN (Hidden by default) ================= -->
   <div id="loginModal" class="hidden fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center transition-all duration-300">
@@ -167,7 +193,7 @@
             </div>
             
             <h2 class="text-2xl font-bold text-center text-gray-800 mb-2">Portal Security</h2>
-            <p class="text-xs text-center text-gray-500 mb-8 leading-relaxed">Masukkan kode sandi akses untuk menggunakan fitur cetak sertifikat</p>
+            <p class="text-xs text-center text-gray-500 mb-8 leading-relaxed">Masukkan kode sandi akses / token premium untuk menggunakan fitur cetak sertifikat penuh</p>
             
             <div class="space-y-4 mb-8">
                 <div class="w-full relative">
@@ -289,6 +315,29 @@
             </div>
           </section>
 
+          <!-- Pengaturan Background Kustom -->
+          <section class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <h2 class="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center justify-between">
+              <span data-i18n="secBg">Latar Belakang Gambar</span>
+              <label class="cursor-pointer bg-white border border-slate-200 hover:border-emerald-500 text-slate-500 hover:text-emerald-600 px-2 py-1 rounded text-[9px] flex items-center gap-1 transition-colors">
+                <i data-lucide="upload" class="w-3 h-3"></i> Upload
+                <input type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'bg')">
+              </label>
+            </h2>
+            <div class="flex gap-2 mb-2">
+              <button onclick="setCustomBg('makkah')" class="flex-1 bg-white border border-slate-200 p-2 rounded-lg text-xs font-semibold text-slate-600 hover:border-emerald-500 hover:text-emerald-600 transition-colors shadow-sm" data-i18n="btnMakkah">Ka'bah</button>
+              <button onclick="setCustomBg('nabawi')" class="flex-1 bg-white border border-slate-200 p-2 rounded-lg text-xs font-semibold text-slate-600 hover:border-emerald-500 hover:text-emerald-600 transition-colors shadow-sm" data-i18n="btnNabawi">Nabawi</button>
+              <button onclick="removeImage('bg')" class="bg-red-50 text-red-500 border border-red-200 px-3 py-2 rounded-lg hover:bg-red-100 transition-colors shadow-sm" title="Hapus Latar Belakang Custom"><i data-lucide="trash-2" class="w-4 h-4 mx-auto"></i></button>
+            </div>
+            <!-- Preview Latar Aktif -->
+            <div id="prev-bg-container" class="hidden w-full h-16 bg-slate-200 border border-slate-300 rounded-lg relative overflow-hidden group">
+              <img id="prev-bg" src="" class="w-full h-full object-cover opacity-50" />
+              <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                 <span class="text-white text-[10px] font-bold uppercase tracking-widest">Latar Custom Aktif</span>
+              </div>
+            </div>
+          </section>
+
           <!-- Data Peserta & Pelaksana -->
           <section>
             <h2 class="text-[11px] font-black text-emerald-700 uppercase tracking-widest mb-4 pb-2 border-b-2 border-emerald-50" data-i18n="secPelaksanaan">Data Pelaksanaan</h2>
@@ -391,6 +440,32 @@
 
   <!-- ================= SCRIPTS ================= -->
   <script>
+    // --- Anti-Copy & Anti-Inspect Protections ---
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    document.addEventListener('copy', event => {
+        event.preventDefault();
+        alert("Menyalin konten dilarang!");
+    });
+    document.addEventListener('keydown', function(e) {
+        // Izinkan Ctrl+P untuk keperluan cetak sertifikat
+        if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+            e.preventDefault(); 
+            attemptPrint(); 
+            return;
+        }
+        // Blokir F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+S, Ctrl+C
+        if (e.key === 'F12' || 
+           (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'i' || e.key === 'j')) || 
+           (e.ctrlKey && (e.key === 'U' || e.key === 'u' || e.key === 'S' || e.key === 's' || e.key === 'C' || e.key === 'c'))) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // --- API Configuration (Obfuscated) ---
+    // String di bawah adalah representasi Base64 dari URL Apps Script asli Anda
+    const _0x1a2b = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J4bWtlVU9EUzZ0NGZsdGkzYl9OTEUyTlktdVVNSVlFY0lKT1VJYmpOSlBGbGI1QjhEWTgzeEJPOGc3ek1xTU4xb0UvZXhlYw==";
+
     // --- Initialize Icons ---
     lucide.createIcons();
 
@@ -400,10 +475,12 @@
     let previewScale = 1.0;
     let isPreviewVisible = true;
     let currentLanguage = 'id';
+    let isPremium = localStorage.getItem('cv_is_premium') === 'true'; // Global Premium State
     
     // Images Base64
     let imgLogo = null;
     let imgTtd = null;
+    let imgBg = null;
 
     // --- Font Combos Definition ---
     const fontCombos = [
@@ -437,6 +514,9 @@
         btnCetak: "CETAK PDF",
         secDesign: "Desain Sertifikat (20 Tema)",
         secAttr: "Atribut Dokumen",
+        secBg: "Latar Belakang Gambar",
+        btnMakkah: "Ka'bah",
+        btnNabawi: "Nabawi",
         lblNomor: "Nomor Sertifikat",
         lblTanggal: "Tanggal Terbit",
         lblLokasi: "Lokasi Pembuatan",
@@ -479,6 +559,9 @@
         btnCetak: "طباعة PDF",
         secDesign: "تصميم الشهادة (20 سمة)",
         secAttr: "خصائص الوثيقة",
+        secBg: "خلفية الصورة",
+        btnMakkah: "الكعبة",
+        btnNabawi: "النبوي",
         lblNomor: "رقم الشهادة",
         lblTanggal: "تاريخ الإصدار",
         lblLokasi: "مكان الإصدار",
@@ -534,241 +617,49 @@
         "Badal Haji & Umroh": "حج وعمرة البدل",
         "Badal Haji": "حج البدل"
     };
-
-    // --- Konfigurasi Keamanan Login ---
-    const API_ENCODED = 'aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J3MXJHbm5rcWtnZmFmODRlX1dmZ0hETmFIdVE3WUFXay1sa1h2Qjd0N0QxU0k5M2w0X3NzYlJlVno1RjdLenBrT18vZXhlYw'; 
     
     // --- Template Definitions (20 Premium Themes) ---
     const templates = [
-      { 
-        id: 0, name: 'Classic Gold', 
-        thumb: 'linear-gradient(135deg, #fefce8, #fef08a)',
-        bgOut: 'bg-yellow-50',
-        bgInner: 'bg-white border-4 border-double border-yellow-600',
-        title: 'text-yellow-700 font-black',
-        textMain: 'text-slate-800',
-        accent: 'text-yellow-600',
-        pattern: true
-      },
-      { 
-        id: 1, name: 'Emerald Islamic', 
-        thumb: 'linear-gradient(135deg, #064e3b, #047857)',
-        bgOut: 'bg-emerald-900',
-        bgInner: 'bg-emerald-800 border-2 border-emerald-400 ring-4 ring-emerald-900 ring-offset-2 ring-offset-emerald-500',
-        title: 'text-yellow-400 font-black',
-        textMain: 'text-emerald-50',
-        accent: 'text-yellow-300',
-        pattern: true
-      },
-      { 
-        id: 2, name: 'Royal Black', 
-        thumb: 'linear-gradient(135deg, #1e293b, #0f172a)',
-        bgOut: 'bg-slate-900',
-        bgInner: 'bg-slate-800 border-[6px] border-amber-500',
-        title: 'text-amber-500 font-black',
-        textMain: 'text-slate-100',
-        accent: 'text-amber-400',
-        pattern: true
-      },
-      { 
-        id: 3, name: 'Minimalist Clean', 
-        thumb: 'linear-gradient(135deg, #ffffff, #f1f5f9)',
-        bgOut: 'bg-white',
-        bgInner: 'bg-white border border-slate-300 shadow-inner',
-        title: 'text-slate-800 font-black tracking-widest',
-        textMain: 'text-slate-600',
-        accent: 'text-slate-900',
-        pattern: false
-      },
-      { 
-        id: 4, name: 'Ka\'bah Theme', 
-        thumb: 'linear-gradient(135deg, #000000, #475569)',
-        bgOut: 'bg-slate-900',
-        bgInner: 'bg-[#111] border-4 border-yellow-600',
-        bgImage: 'https://images.unsplash.com/photo-1565552643952-2508eb605b07?q=80&w=1000&auto=format&fit=crop',
-        imageOpacity: 'opacity-25',
-        title: 'text-yellow-500 font-black',
-        textMain: 'text-gray-200',
-        accent: 'text-yellow-600',
-        pattern: false
-      },
-      { 
-        id: 5, name: 'Soft Pastel', 
-        thumb: 'linear-gradient(135deg, #faf5ff, #f3e8ff)',
-        bgOut: 'bg-purple-50',
-        bgInner: 'bg-white border-2 border-purple-200 rounded-3xl',
-        title: 'text-purple-800 font-bold',
-        textMain: 'text-slate-700',
-        accent: 'text-purple-600',
-        pattern: false
-      },
-      { 
-        id: 6, name: 'Official Formal', 
-        thumb: 'linear-gradient(135deg, #eff6ff, #bfdbfe)',
-        bgOut: 'bg-slate-100',
-        bgInner: 'bg-white border-[8px] border-double border-slate-800',
-        bgImage: 'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?q=80&w=1000&auto=format&fit=crop',
-        imageOpacity: 'opacity-15',
-        title: 'text-slate-900 font-black',
-        textMain: 'text-slate-800',
-        accent: 'text-slate-700',
-        pattern: false
-      },
-      { 
-        id: 7, name: 'Green Geometry', 
-        thumb: 'linear-gradient(135deg, #dcfce7, #86efac)',
-        bgOut: 'bg-green-100',
-        bgInner: 'bg-white border border-green-500',
-        title: 'text-green-800 font-bold',
-        textMain: 'text-slate-700',
-        accent: 'text-green-600',
-        pattern: true
-      },
-      { 
-        id: 8, name: 'Royal Blue', 
-        thumb: 'linear-gradient(135deg, #1e3a8a, #1d4ed8)',
-        bgOut: 'bg-blue-900',
-        bgInner: 'bg-blue-50 border-[4px] border-blue-900',
-        title: 'text-blue-900 font-black',
-        textMain: 'text-blue-950',
-        accent: 'text-blue-700',
-        pattern: true
-      },
-      { 
-        id: 9, name: 'Desert Sand', 
-        thumb: 'linear-gradient(135deg, #ffedd5, #fdba74)',
-        bgOut: 'bg-orange-100',
-        bgInner: 'bg-orange-50 border-2 border-orange-800',
-        title: 'text-orange-900 font-black',
-        textMain: 'text-orange-950',
-        accent: 'text-orange-700',
-        pattern: true
-      },
-      { 
-        id: 10, name: 'Ka\'bah Exclusive', 
-        thumb: 'linear-gradient(135deg, #1f2937, #000000)',
-        bgOut: 'bg-slate-900',
-        bgInner: 'bg-[#0f172a] border-4 border-amber-600',
-        bgImage: 'https://lh3.googleusercontent.com/d/17UkFIKceKQjubOt5aK5864b9Mv1PmBMg',
-        imageOpacity: 'opacity-40',
-        title: 'text-amber-500 font-black',
-        textMain: 'text-gray-100',
-        accent: 'text-amber-400',
-        pattern: false
-      },
-      { 
-        id: 11, name: 'Nabawi Exclusive', 
-        thumb: 'linear-gradient(135deg, #064e3b, #10b981)',
-        bgOut: 'bg-emerald-900',
-        bgInner: 'bg-emerald-950 border-4 border-emerald-400',
-        bgImage: 'https://lh3.googleusercontent.com/d/1s4DYIJuN3qOkxO0RqFyT5tK9dDvgLm2Y',
-        imageOpacity: 'opacity-40',
-        title: 'text-emerald-300 font-black',
-        textMain: 'text-emerald-50',
-        accent: 'text-emerald-400',
-        pattern: false
-      },
-      { 
-        id: 12, name: 'Ruby Ka\'bah', 
-        thumb: 'linear-gradient(135deg, #4c0519, #881337)',
-        bgOut: 'bg-rose-950',
-        bgInner: 'bg-rose-900 border-4 border-rose-300 ring-2 ring-rose-900 ring-offset-2 ring-offset-rose-800',
-        bgImage: 'https://lh3.googleusercontent.com/d/17UkFIKceKQjubOt5aK5864b9Mv1PmBMg',
-        imageOpacity: 'opacity-30',
-        title: 'text-rose-200 font-black',
-        textMain: 'text-rose-50',
-        accent: 'text-rose-300',
-        pattern: false
-      },
-      { 
-        id: 13, name: 'Silver Nabawi', 
-        thumb: 'linear-gradient(135deg, #e2e8f0, #94a3b8)',
-        bgOut: 'bg-slate-200',
-        bgInner: 'bg-white border-[6px] border-double border-slate-400',
-        bgImage: 'https://lh3.googleusercontent.com/d/1s4DYIJuN3qOkxO0RqFyT5tK9dDvgLm2Y',
-        imageOpacity: 'opacity-20',
-        title: 'text-slate-800 font-black',
-        textMain: 'text-slate-800',
-        accent: 'text-slate-600',
-        pattern: false
-      },
-      { 
-        id: 14, name: 'Navy Ka\'bah', 
-        thumb: 'linear-gradient(135deg, #0f172a, #1e3a8a)',
-        bgOut: 'bg-blue-950',
-        bgInner: 'bg-slate-900 border border-amber-400 ring-4 ring-slate-900 ring-offset-4 ring-offset-amber-500',
-        bgImage: 'https://lh3.googleusercontent.com/d/17UkFIKceKQjubOt5aK5864b9Mv1PmBMg',
-        imageOpacity: 'opacity-25',
-        title: 'text-amber-500 font-black',
-        textMain: 'text-slate-200',
-        accent: 'text-amber-400',
-        pattern: false
-      },
-      { 
-        id: 15, name: 'Rose Gold Nabawi', 
-        thumb: 'linear-gradient(135deg, #fff1f2, #fecdd3)',
-        bgOut: 'bg-stone-100',
-        bgInner: 'bg-[#fff5f5] border-[3px] border-[#d4af37]',
-        bgImage: 'https://lh3.googleusercontent.com/d/1s4DYIJuN3qOkxO0RqFyT5tK9dDvgLm2Y',
-        imageOpacity: 'opacity-15',
-        title: 'text-[#9d6b53] font-black',
-        textMain: 'text-stone-800',
-        accent: 'text-[#b76e79]',
-        pattern: false
-      },
-      { 
-        id: 16, name: 'Teal Ka\'bah', 
-        thumb: 'linear-gradient(135deg, #134e4a, #042f2e)',
-        bgOut: 'bg-teal-900',
-        bgInner: 'bg-teal-950 border-2 border-orange-300 border-dashed',
-        bgImage: 'https://lh3.googleusercontent.com/d/17UkFIKceKQjubOt5aK5864b9Mv1PmBMg',
-        imageOpacity: 'opacity-30',
-        title: 'text-orange-300 font-black',
-        textMain: 'text-teal-50',
-        accent: 'text-orange-400',
-        pattern: false
-      },
-      { 
-        id: 17, name: 'Ivory Nabawi', 
-        thumb: 'linear-gradient(135deg, #fefce8, #e7e5e4)',
-        bgOut: 'bg-[#fdfbf7]',
-        bgInner: 'bg-[#f8f5eb] border border-[#8b7355] shadow-inner',
-        bgImage: 'https://lh3.googleusercontent.com/d/1s4DYIJuN3qOkxO0RqFyT5tK9dDvgLm2Y',
-        imageOpacity: 'opacity-15',
-        title: 'text-[#5c4d3c] font-black',
-        textMain: 'text-[#4a3f35]',
-        accent: 'text-[#8b7355]',
-        pattern: false
-      },
-      { 
-        id: 18, name: 'Indigo Ka\'bah', 
-        thumb: 'linear-gradient(135deg, #312e81, #1e1b4b)',
-        bgOut: 'bg-indigo-950',
-        bgInner: 'bg-indigo-950 border-4 border-indigo-300',
-        bgImage: 'https://lh3.googleusercontent.com/d/17UkFIKceKQjubOt5aK5864b9Mv1PmBMg',
-        imageOpacity: 'opacity-25',
-        title: 'text-indigo-200 font-black',
-        textMain: 'text-indigo-50',
-        accent: 'text-indigo-300',
-        pattern: false
-      },
-      { 
-        id: 19, name: 'Golden Nabawi', 
-        thumb: 'linear-gradient(135deg, #78350f, #451a03)',
-        bgOut: 'bg-amber-950',
-        bgInner: 'bg-amber-950 border-[6px] border-double border-amber-500',
-        bgImage: 'https://lh3.googleusercontent.com/d/1s4DYIJuN3qOkxO0RqFyT5tK9dDvgLm2Y',
-        imageOpacity: 'opacity-30',
-        title: 'text-amber-400 font-black',
-        textMain: 'text-amber-50',
-        accent: 'text-amber-300',
-        pattern: false
-      }
+      { id: 0, name: 'Classic Gold', thumb: 'linear-gradient(135deg, #fefce8, #fef08a)', bgOut: 'bg-yellow-50', bgInner: 'bg-white border-4 border-double border-yellow-600', title: 'text-yellow-700 font-black', textMain: 'text-slate-800', accent: 'text-yellow-600', pattern: true },
+      { id: 1, name: 'Emerald Islamic', thumb: 'linear-gradient(135deg, #064e3b, #047857)', bgOut: 'bg-emerald-900', bgInner: 'bg-emerald-800 border-2 border-emerald-400 ring-4 ring-emerald-900 ring-offset-2 ring-offset-emerald-500', title: 'text-yellow-400 font-black', textMain: 'text-emerald-50', accent: 'text-yellow-300', pattern: true },
+      { id: 2, name: 'Royal Black', thumb: 'linear-gradient(135deg, #1e293b, #0f172a)', bgOut: 'bg-slate-900', bgInner: 'bg-slate-800 border-[6px] border-amber-500', title: 'text-amber-500 font-black', textMain: 'text-slate-100', accent: 'text-amber-400', pattern: true },
+      { id: 3, name: 'Minimalist Clean', thumb: 'linear-gradient(135deg, #ffffff, #f1f5f9)', bgOut: 'bg-white', bgInner: 'bg-white border border-slate-300 shadow-inner', title: 'text-slate-800 font-black tracking-widest', textMain: 'text-slate-600', accent: 'text-slate-900', pattern: false },
+      { id: 4, name: 'Ka\'bah Theme', thumb: 'linear-gradient(135deg, #000000, #475569)', bgOut: 'bg-slate-900', bgInner: 'bg-[#111] border-4 border-yellow-600', bgImage: 'https://images.unsplash.com/photo-1565552643952-2508eb605b07?q=80&w=1000&auto=format&fit=crop', imageOpacity: 'opacity-25', title: 'text-yellow-500 font-black', textMain: 'text-gray-200', accent: 'text-yellow-600', pattern: false },
+      { id: 5, name: 'Soft Pastel', thumb: 'linear-gradient(135deg, #faf5ff, #f3e8ff)', bgOut: 'bg-purple-50', bgInner: 'bg-white border-2 border-purple-200 rounded-3xl', title: 'text-purple-800 font-bold', textMain: 'text-slate-700', accent: 'text-purple-600', pattern: false },
+      { id: 6, name: 'Official Formal', thumb: 'linear-gradient(135deg, #eff6ff, #bfdbfe)', bgOut: 'bg-slate-100', bgInner: 'bg-white border-[8px] border-double border-slate-800', bgImage: 'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?q=80&w=1000&auto=format&fit=crop', imageOpacity: 'opacity-15', title: 'text-slate-900 font-black', textMain: 'text-slate-800', accent: 'text-slate-700', pattern: false },
+      { id: 7, name: 'Green Geometry', thumb: 'linear-gradient(135deg, #dcfce7, #86efac)', bgOut: 'bg-green-100', bgInner: 'bg-white border border-green-500', title: 'text-green-800 font-bold', textMain: 'text-slate-700', accent: 'text-green-600', pattern: true },
+      { id: 8, name: 'Royal Blue', thumb: 'linear-gradient(135deg, #1e3a8a, #1d4ed8)', bgOut: 'bg-blue-900', bgInner: 'bg-blue-50 border-[4px] border-blue-900', title: 'text-blue-900 font-black', textMain: 'text-blue-950', accent: 'text-blue-700', pattern: true },
+      { id: 9, name: 'Desert Sand', thumb: 'linear-gradient(135deg, #ffedd5, #fdba74)', bgOut: 'bg-orange-100', bgInner: 'bg-orange-50 border-2 border-orange-800', title: 'text-orange-900 font-black', textMain: 'text-orange-950', accent: 'text-orange-700', pattern: true },
+      { id: 10, name: 'Ka\'bah Exclusive', thumb: 'linear-gradient(135deg, #1f2937, #000000)', bgOut: 'bg-slate-900', bgInner: 'bg-[#0f172a] border-4 border-amber-600', bgImage: 'https://lh3.googleusercontent.com/d/17UkFIKceKQjubOt5aK5864b9Mv1PmBMg', imageOpacity: 'opacity-40', title: 'text-amber-500 font-black', textMain: 'text-gray-100', accent: 'text-amber-400', pattern: false },
+      { id: 11, name: 'Nabawi Exclusive', thumb: 'linear-gradient(135deg, #064e3b, #10b981)', bgOut: 'bg-emerald-900', bgInner: 'bg-emerald-950 border-4 border-emerald-400', bgImage: 'https://lh3.googleusercontent.com/d/1s4DYIJuN3qOkxO0RqFyT5tK9dDvgLm2Y', imageOpacity: 'opacity-40', title: 'text-emerald-300 font-black', textMain: 'text-emerald-50', accent: 'text-emerald-400', pattern: false },
+      { id: 12, name: 'Ruby Ka\'bah', thumb: 'linear-gradient(135deg, #4c0519, #881337)', bgOut: 'bg-rose-950', bgInner: 'bg-rose-900 border-4 border-rose-300 ring-2 ring-rose-900 ring-offset-2 ring-offset-rose-800', bgImage: 'https://lh3.googleusercontent.com/d/17UkFIKceKQjubOt5aK5864b9Mv1PmBMg', imageOpacity: 'opacity-30', title: 'text-rose-200 font-black', textMain: 'text-rose-50', accent: 'text-rose-300', pattern: false },
+      { id: 13, name: 'Silver Nabawi', thumb: 'linear-gradient(135deg, #e2e8f0, #94a3b8)', bgOut: 'bg-slate-200', bgInner: 'bg-white border-[6px] border-double border-slate-400', bgImage: 'https://lh3.googleusercontent.com/d/1s4DYIJuN3qOkxO0RqFyT5tK9dDvgLm2Y', imageOpacity: 'opacity-20', title: 'text-slate-800 font-black', textMain: 'text-slate-800', accent: 'text-slate-600', pattern: false },
+      { id: 14, name: 'Navy Ka\'bah', thumb: 'linear-gradient(135deg, #0f172a, #1e3a8a)', bgOut: 'bg-blue-950', bgInner: 'bg-slate-900 border border-amber-400 ring-4 ring-slate-900 ring-offset-4 ring-offset-amber-500', bgImage: 'https://lh3.googleusercontent.com/d/17UkFIKceKQjubOt5aK5864b9Mv1PmBMg', imageOpacity: 'opacity-25', title: 'text-amber-500 font-black', textMain: 'text-slate-200', accent: 'text-amber-400', pattern: false },
+      { id: 15, name: 'Rose Gold Nabawi', thumb: 'linear-gradient(135deg, #fff1f2, #fecdd3)', bgOut: 'bg-stone-100', bgInner: 'bg-[#fff5f5] border-[3px] border-[#d4af37]', bgImage: 'https://lh3.googleusercontent.com/d/1s4DYIJuN3qOkxO0RqFyT5tK9dDvgLm2Y', imageOpacity: 'opacity-15', title: 'text-[#9d6b53] font-black', textMain: 'text-stone-800', accent: 'text-[#b76e79]', pattern: false },
+      { id: 16, name: 'Teal Ka\'bah', thumb: 'linear-gradient(135deg, #134e4a, #042f2e)', bgOut: 'bg-teal-900', bgInner: 'bg-teal-950 border-2 border-orange-300 border-dashed', bgImage: 'https://lh3.googleusercontent.com/d/17UkFIKceKQjubOt5aK5864b9Mv1PmBMg', imageOpacity: 'opacity-30', title: 'text-orange-300 font-black', textMain: 'text-teal-50', accent: 'text-orange-400', pattern: false },
+      { id: 17, name: 'Ivory Nabawi', thumb: 'linear-gradient(135deg, #fefce8, #e7e5e4)', bgOut: 'bg-[#fdfbf7]', bgInner: 'bg-[#f8f5eb] border border-[#8b7355] shadow-inner', bgImage: 'https://lh3.googleusercontent.com/d/1s4DYIJuN3qOkxO0RqFyT5tK9dDvgLm2Y', imageOpacity: 'opacity-15', title: 'text-[#5c4d3c] font-black', textMain: 'text-[#4a3f35]', accent: 'text-[#8b7355]', pattern: false },
+      { id: 18, name: 'Indigo Ka\'bah', thumb: 'linear-gradient(135deg, #312e81, #1e1b4b)', bgOut: 'bg-indigo-950', bgInner: 'bg-indigo-950 border-4 border-indigo-300', bgImage: 'https://lh3.googleusercontent.com/d/17UkFIKceKQjubOt5aK5864b9Mv1PmBMg', imageOpacity: 'opacity-25', title: 'text-indigo-200 font-black', textMain: 'text-indigo-50', accent: 'text-indigo-300', pattern: false },
+      { id: 19, name: 'Golden Nabawi', thumb: 'linear-gradient(135deg, #78350f, #451a03)', bgOut: 'bg-amber-950', bgInner: 'bg-amber-950 border-[6px] border-double border-amber-500', bgImage: 'https://lh3.googleusercontent.com/d/1s4DYIJuN3qOkxO0RqFyT5tK9dDvgLm2Y', imageOpacity: 'opacity-30', title: 'text-amber-400 font-black', textMain: 'text-amber-50', accent: 'text-amber-300', pattern: false }
     ];
+
+    // --- Print Scale Listeners ---
+    window.addEventListener('beforeprint', () => {
+      const container = document.getElementById('cert-container');
+      const wrapper = document.getElementById('cert-wrapper');
+      if(container) {
+        container.style.transform = 'none';
+      }
+      if(wrapper) {
+        wrapper.style.height = 'auto';
+      }
+    });
+
+    window.addEventListener('afterprint', () => {
+      calculateAutoScale();
+    });
 
     // --- Core Initialization ---
     function init() {
-      // Splash screen & Main App logic
       setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         const mainApp = document.getElementById('main-app');
@@ -776,21 +667,20 @@
           splash.style.opacity = '0';
           setTimeout(() => {
             splash.classList.add('hidden');
-            mainApp.classList.add('loaded'); // Fade in the main app
-            calculateAutoScale(); // Ensure right scale after load
+            mainApp.classList.add('loaded');
+            calculateAutoScale();
           }, 700);
         }
       }, 1800);
 
       renderThemeSelector();
-      changeFontCombo(); // Memastikan inisialisasi font default
+      changeFontCombo(); 
       
       const dateInput = document.getElementById('b_tanggal');
       const numInput = document.getElementById('b_nomor');
       const today = new Date();
       
       if (!dateInput.value) {
-        // Set to YYYY-MM-DD for date input
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
@@ -803,7 +693,7 @@
         numInput.value = `BU-${yyyymmdd}-${rnd}`;
       }
 
-      applyTranslations(); // Set UI language
+      applyTranslations(); 
       loadSavedData();
       calculateAutoScale(); 
       renderPreview();
@@ -831,7 +721,6 @@
     function applyTranslations() {
       const t = translations[currentLanguage];
       
-      // Update semua text element
       document.querySelectorAll('[data-i18n]').forEach(el => {
           const key = el.getAttribute('data-i18n');
           if (t[key]) {
@@ -843,13 +732,11 @@
           }
       });
       
-      // Update semua placeholder
       document.querySelectorAll('[data-i18n-ph]').forEach(el => {
           const key = el.getAttribute('data-i18n-ph');
           if (t[key]) el.placeholder = t[key];
       });
 
-      // Update options dropdown miqot
       const miqotSelect = document.getElementById('b_miqot');
       if(currentLanguage === 'ar') {
           miqotSelect.options[0].text = "ذي الحليفة (أبيار علي)";
@@ -870,13 +757,10 @@
       }
     }
 
-    // Memblokir input Latin saat mode Arab aktif
     function handleInputFilter(el) {
         if (currentLanguage === 'ar') {
-            // Abaikan input tipe link, nomor sertifikat, dan tanggal
             if (el.id !== 'b_link' && el.id !== 'b_nomor' && el.id !== 'b_tanggal' && el.id !== 'b_font') {
                 const cursorPos = el.selectionStart;
-                // Menghapus semua karakter huruf latin (A-Z, a-z)
                 el.value = el.value.replace(/[a-zA-Z]/g, '');
                 el.setSelectionRange(cursorPos, cursorPos);
             }
@@ -886,20 +770,7 @@
 
 
     // --- Logic Login & Intercept Print ---
-    document.addEventListener('keydown', function(event) {
-        if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
-            event.preventDefault(); 
-            attemptPrint(); 
-        }
-    });
-
-    async function hashPassword(message) {
-        const msgBuffer = new TextEncoder().encode(message);                    
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        return hashHex;
-    }
+    // (Pencegat shortcut Print sudah digabungkan di bagian Anti-Copy Protection di atas)
 
     function showLoginModal() {
         const modal = document.getElementById('loginModal');
@@ -924,8 +795,7 @@
     }
 
     function attemptPrint() {
-        const isAuth = sessionStorage.getItem('is_auth_print') === 'true';
-        if (isAuth) {
+        if (isPremium) {
             executePrint();
         } else {
             showLoginModal();
@@ -934,7 +804,7 @@
 
     async function handleLogin() {
         const pwdInput = document.getElementById('password').value;
-        if (!pwdInput) return alert("Silakan masukkan sandi akses!");
+        if (!pwdInput) return alert("Silakan masukkan token premium!");
 
         const btn = document.getElementById('btnLogin');
         const originalText = btn.innerHTML;
@@ -942,43 +812,29 @@
         btn.disabled = true;
 
         try {
-            const hashedPwd = await hashPassword(pwdInput);
-            
-            let apiUrl = null;
-            if (API_ENCODED !== 'YOUR_BASE64_ENCODED_API_URL_HERE') {
-                if (API_ENCODED.startsWith('http')) {
-                    apiUrl = API_ENCODED;
-                } else {
-                    try {
-                        let base64Str = API_ENCODED;
-                        while (base64Str.length % 4 !== 0) { base64Str += '='; }
-                        apiUrl = atob(base64Str);
-                    } catch (e) {
-                        console.warn("Peringatan: URL API gagal di-decode, menggunakan URL secara langsung.");
-                        apiUrl = API_ENCODED;
-                    }
-                }
-            }
-            
-            if(!apiUrl || !apiUrl.startsWith('http')) {
-                alert("API Endpoint belum disetting dengan benar di source code.");
-                throw new Error("Missing or Invalid API URL");
-            }
+            // Me-resolve / mendecode kembali API URL yang disandikan
+            const apiUrl = atob(_0x1a2b);
 
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ hash: hashedPwd })
+                body: JSON.stringify({ 
+                    action: 'verify', 
+                    token: pwdInput 
+                })
             });
 
             const result = await response.json();
 
-            if (result.status === 'success') {
-                sessionStorage.setItem('is_auth_print', 'true');
+            if (result.success === true) {
+                localStorage.setItem('cv_is_premium', 'true');
+                isPremium = true;
+                renderPreview(); 
                 closeLoginModal();
+                alert(result.message); // Menampilkan pesan sukses dari backend
                 setTimeout(() => { executePrint(); }, 400);
             } else {
-                alert("Sandi akses yang Anda masukkan SALAH!");
+                alert(result.message || "Sandi akses/token yang Anda masukkan SALAH!");
                 document.getElementById('password').value = '';
                 document.getElementById('password').focus();
             }
@@ -996,7 +852,7 @@
         if (e.key === 'Enter') handleLogin();
     });
 
-    // --- Helper Format Date (Masehi & Hijriah) ---
+    // --- Helper Format Date ---
     function formatHijriMasehi(dateStr, location, isAr) {
       if(!dateStr) return '';
       try {
@@ -1013,8 +869,6 @@
           const localeH = isAr ? 'ar-SA-u-ca-islamic-umalqura-nu-arab' : 'id-ID-u-ca-islamic-umalqura';
           const optionsH = { day: 'numeric', month: 'long', year: 'numeric', calendar: 'islamic-umalqura' };
           let hStr = new Intl.DateTimeFormat(localeH, optionsH).format(d);
-          
-          // Memotong marker penanggalan yang salah (seperti M, H, AH, SM, EH) di bagian akhir
           let cleanHStr = hStr.replace(/\s*(هـ|م|AH|SM|EH|H|M|CE|BCE)\s*$/i, '');
           hijriah = cleanHStr.trim() + (isAr ? ' هـ' : ' H');
         } catch(e) {
@@ -1039,6 +893,9 @@
         btn.style.background = theme.thumb;
         btn.title = theme.name;
         btn.onclick = () => {
+          if (!isPremium && currentTemplate !== idx) {
+             document.getElementById('premiumModal').classList.remove('hidden');
+          }
           currentTemplate = idx;
           renderThemeSelector(); 
           queueAutoSave();
@@ -1047,19 +904,33 @@
       });
     }
 
-    // --- Image Handlers ---
+    // --- Background Handlers ---
+    function setCustomBg(type) {
+      if (!isPremium) {
+         document.getElementById('premiumModal').classList.remove('hidden');
+      }
+      if (type === 'makkah') imgBg = 'https://lh3.googleusercontent.com/d/17UkFIKceKQjubOt5aK5864b9Mv1PmBMg';
+      else if (type === 'nabawi') imgBg = 'https://lh3.googleusercontent.com/d/1s4DYIJuN3qOkxO0RqFyT5tK9dDvgLm2Y';
+      
+      localStorage.setItem('bu_bg', imgBg);
+      updateImageUI();
+      queueAutoSave();
+    }
+
+    // --- Image Handlers (Logo, TTD, BG) ---
     function handleImageUpload(e, type) {
       const file = e.target.files[0];
       if (file) {
+        if (!isPremium && type === 'bg') {
+             document.getElementById('premiumModal').classList.remove('hidden');
+        }
+        
         const reader = new FileReader();
         reader.onload = (event) => {
           const base64 = event.target.result;
-          if (type === 'logo') { imgLogo = base64; }
-          if (type === 'ttd') { imgTtd = base64; }
-          
-          try {
-            localStorage.setItem(`bu_${type}`, base64);
-          } catch(err) { console.warn("Image too large for local storage"); }
+          if (type === 'logo') { imgLogo = base64; localStorage.setItem('bu_logo', base64); }
+          else if (type === 'ttd') { imgTtd = base64; localStorage.setItem('bu_ttd', base64); }
+          else if (type === 'bg') { imgBg = base64; localStorage.setItem('bu_bg', base64); }
           
           updateImageUI();
           queueAutoSave();
@@ -1070,7 +941,8 @@
 
     function removeImage(type) {
       if (type === 'logo') { imgLogo = null; localStorage.removeItem('bu_logo'); }
-      if (type === 'ttd') { imgTtd = null; localStorage.removeItem('bu_ttd'); }
+      else if (type === 'ttd') { imgTtd = null; localStorage.removeItem('bu_ttd'); }
+      else if (type === 'bg') { imgBg = null; localStorage.removeItem('bu_bg'); }
       updateImageUI();
       queueAutoSave();
     }
@@ -1085,6 +957,11 @@
       const ttdImg = document.getElementById('prev-ttd');
       if (imgTtd) { ttdImg.src = imgTtd; ttdCont.classList.remove('hidden'); } 
       else { ttdCont.classList.add('hidden'); }
+
+      const bgCont = document.getElementById('prev-bg-container');
+      const bgImg = document.getElementById('prev-bg');
+      if (imgBg) { bgImg.src = imgBg; bgCont.classList.remove('hidden'); } 
+      else { bgCont.classList.add('hidden'); }
     }
 
     // --- Auto Save & Load ---
@@ -1104,6 +981,7 @@
     function loadSavedData() {
       imgLogo = localStorage.getItem('bu_logo');
       imgTtd = localStorage.getItem('bu_ttd');
+      imgBg = localStorage.getItem('bu_bg');
       updateImageUI();
 
       const savedData = localStorage.getItem('bu_data');
@@ -1116,7 +994,7 @@
               const el = document.getElementById(id);
               if (el) {
                 el.value = data.fields[id];
-                if (id === 'b_font') changeFontCombo(); // Set font jika ada tersimpan
+                if (id === 'b_font') changeFontCombo();
               }
             });
           }
@@ -1129,7 +1007,8 @@
         localStorage.removeItem('bu_data');
         localStorage.removeItem('bu_logo');
         localStorage.removeItem('bu_ttd');
-        imgLogo = null; imgTtd = null;
+        localStorage.removeItem('bu_bg');
+        imgLogo = null; imgTtd = null; imgBg = null;
         document.querySelectorAll('.input-field').forEach(el => el.value = '');
         updateImageUI();
         init();
@@ -1158,7 +1037,7 @@
       const viewport = document.getElementById('preview-viewport');
       if (!viewport || !isPreviewVisible) return;
       
-      const certBaseWidth = 1123; // Estimasi lebar 297mm dalam pixels
+      const certBaseWidth = 1123; 
       const paddingX = window.innerWidth < 768 ? 32 : 80; 
       
       let autoScale = (viewport.clientWidth - paddingX) / certBaseWidth;
@@ -1180,16 +1059,14 @@
       isPreviewVisible = !isPreviewVisible;
       
       if (isPreviewVisible) {
-          // Tampilkan: hilangkan hidden, kembalikan class flex-1 dan tinggi asal
           previewSection.classList.remove('hidden');
           setTimeout(() => {
             previewSection.classList.replace('opacity-0', 'opacity-100');
             icon.setAttribute('data-lucide', 'eye-off');
             lucide.createIcons();
-            calculateAutoScale(); // Recalculate zoom
+            calculateAutoScale(); 
           }, 10);
       } else {
-          // Ciutkan: jadikan hidden
           previewSection.classList.replace('opacity-100', 'opacity-0');
           setTimeout(() => {
             previewSection.classList.add('hidden');
@@ -1199,7 +1076,6 @@
       }
     }
 
-    // --- Helper ---
     function val(id, fallback = '.........................') {
       const el = document.getElementById(id);
       return el && el.value.trim() !== '' ? el.value : fallback;
@@ -1216,26 +1092,24 @@
       container.classList.add('fade-enter');
       
       setTimeout(() => {
-        // SVG Flags
         const flagID = `<div class="shadow-sm border border-black/20 overflow-hidden" style="width: 30mm; height: 20mm;"><img src="https://lh3.googleusercontent.com/d/1B474IkUFpGbX_lLD924dl-tmEGw1dgt8" class="w-full h-full object-cover" crossorigin="anonymous" /></div>`;
         const flagSA = `<div class="shadow-sm border border-black/20 overflow-hidden" style="width: 30mm; height: 20mm;"><img src="https://lh3.googleusercontent.com/d/1X8HwnPQvRuFuFM1c2tNuTd6Q7OEkRfdl" class="w-full h-full object-cover" crossorigin="anonymous" /></div>`;
 
-        // Logo
         const logoHtml = imgLogo ? `<img src="${imgLogo}" class="h-16 w-16 object-contain" />` : `<div class="w-16 h-16 border-2 border-dashed border-current opacity-30 flex items-center justify-center text-[8px]">LOGO</div>`;
         
-        // TTD
         const ttdHtml = imgTtd ? `<img src="${imgTtd}" class="absolute -bottom-4 left-1/2 -translate-x-1/2 h-32 w-56 object-contain mix-blend-multiply pointer-events-none z-30" />` : '';
 
-        // Patterns and Image Overlays
         const patternHtml = theme.pattern ? `<div class="pattern-overlay"></div>` : '';
-        const bgImageHtml = theme.bgImage ? `<div class="absolute inset-0 z-0 ${theme.imageOpacity} pointer-events-none" style="background-image: url('${theme.bgImage}'); background-size: cover; background-position: center;"></div>` : '';
+        
+        // --- Integrasi Latar Belakang Custom ---
+        let activeBgImg = imgBg || theme.bgImage;
+        let activeBgOpacity = imgBg ? 'opacity-25' : theme.imageOpacity; // Pakai opacity 25% jika custom bg
+        const bgImageHtml = activeBgImg ? `<div class="absolute inset-0 z-0 ${activeBgOpacity} pointer-events-none" style="background-image: url('${activeBgImg}'); background-size: cover; background-position: center;"></div>` : '';
 
-        // Tanggal Format
         const dateInputVal = document.getElementById('b_tanggal').value;
         const locVal = val('b_lokasi', isAr ? 'مكة المكرمة' : 'Makkah');
         const formattedDateFull = formatHijriMasehi(dateInputVal, locVal, isAr);
 
-        // QR Code
         const linkDokumentasi = document.getElementById('b_link').value.trim();
         let qrDisplayHtml = `
           <div class="w-20 h-20 border-2 border-current p-1 opacity-50 flex items-center justify-center flex-col rounded">
@@ -1252,12 +1126,16 @@
             <span class="text-[8px] mt-1 font-sans uppercase font-bold tracking-wider">${isAr ? 'توثيق' : 'Dokumentasi'}</span>`;
         }
 
-        // Mapping Data Khusus Arab
         const valJenis = val('b_jenis', 'Badal Umroh');
         const displayJenis = isAr ? (jenisMapAr[valJenis] || valJenis) : valJenis;
         
         const valMiqot = val('b_miqot', 'Bir Ali (Zulhulaifah)');
         const displayMiqot = isAr ? (miqotMapAr[valMiqot] || valMiqot) : valMiqot;
+
+        const watermarkHtml = !isPremium ? `
+          <div class="absolute inset-0 flex items-center justify-center z-[100] pointer-events-none overflow-hidden">
+              <span class="text-[150px] font-black text-slate-800 opacity-[0.06] transform -rotate-45 select-none tracking-widest drop-shadow-md">GHASSAN</span>
+          </div>` : '';
 
         const html = `
           <div class="cert-inner ${theme.bgOut}" ${isAr ? 'dir="rtl"' : ''}>
@@ -1265,10 +1143,11 @@
               
               ${patternHtml}
               ${bgImageHtml}
+              ${watermarkHtml}
               
               <!-- Header Row -->
               <div class="w-full flex justify-between items-start relative z-20">
-                <div class="w-16 h-16"></div> <!-- Spacer for balance -->
+                <div class="w-16 h-16"></div> 
                 <div class="${theme.textMain} cert-body-text opacity-80 text-xs font-bold uppercase tracking-widest text-center mt-2">
                   ${val('b_travel', t.lblTravel)}
                 </div>
