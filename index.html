@@ -1188,43 +1188,49 @@
               <span class="${wmSize} font-black text-slate-800 opacity-[0.06] transform -rotate-45 select-none tracking-widest drop-shadow-md">GHASSAN</span>
           </div>` : '';
 
-        // Penyesuaian Style Teks secara presisi untuk Landscape/Portrait
-        const titleTextClass = isPortrait ? 'text-3xl md:text-4xl' : 'text-4xl md:text-5xl';
-        const subtitleTextClass = isPortrait ? 'text-lg md:text-xl' : 'text-xl md:text-2xl';
-        const nameTextClass = isPortrait ? 'text-5xl md:text-6xl my-4' : 'text-5xl md:text-7xl my-2';
-        const bodyTextClass = isPortrait ? 'text-sm md:text-base mt-4 leading-relaxed max-w-2xl mx-auto px-4' : 'text-sm md:text-base mt-2 max-w-4xl mx-auto leading-relaxed';
-        const hadithSizeClass = isPortrait ? 'text-xl md:text-2xl' : 'text-2xl md:text-3xl';
-        const flagGapClass = isPortrait ? 'gap-3 md:gap-6' : 'gap-6 md:gap-8';
+        // Variabel Penyesuaian Style Presisi agar bagian tetap pada porsinya
+        const titleTextClass = isPortrait ? 'text-4xl md:text-5xl' : 'text-3xl md:text-4xl';
+        const subtitleTextClass = isPortrait ? 'text-xl md:text-2xl' : 'text-lg md:text-xl';
         const maxWidthTitle = isPortrait ? 'max-w-[350px]' : 'max-w-[500px]';
+        const flagGapClass = isPortrait ? 'gap-3 md:gap-6' : 'gap-6 md:gap-12';
         const spacerSize = isPortrait ? 'w-12 h-12' : 'w-16 h-16';
 
-        // Struktur Layout Fleksibel: Header (Top) -> Middle (Center Auto) -> Footer (Bottom)
+        // Grup Tengah (Nama Peserta & Kalimat)
+        const nameTextClass = isPortrait ? 'text-5xl md:text-6xl lg:text-7xl my-6' : 'text-4xl md:text-5xl lg:text-6xl my-2';
+        const bodyTextClass = isPortrait ? 'text-sm md:text-base mt-6 leading-relaxed max-w-2xl mx-auto px-4' : 'text-xs md:text-sm mt-2 max-w-3xl mx-auto leading-relaxed';
+        const pelaksanaMt = isPortrait ? 'mt-6' : 'mt-2';
+
+        // Grup Bawah (Dalil & Footer)
+        const hadithSizeClass = isPortrait ? 'text-2xl md:text-3xl' : 'text-xl md:text-2xl';
+        const sigSpace = isPortrait ? 'mb-16 md:mb-20' : 'mb-8 md:mb-10'; // TTD punya jarak aman
+        const paddingContainer = isPortrait ? 'p-8 md:p-12' : 'p-6 md:p-8'; // Padding pas agar tidak nabrak tepian
+
+        // Struktur HTML dengan Layout Tiga Bagian Fleksibel yang menjamin posisi dan tidak menabrak batas
         const html = `
           <div class="cert-inner ${theme.bgOut}" ${isAr ? 'dir="rtl"' : ''}>
-            <div class="w-full h-full ${theme.bgInner} relative flex flex-col p-6 md:p-8">
+            <div class="w-full h-full ${theme.bgInner} relative flex flex-col justify-between ${paddingContainer}">
               
               ${patternHtml}
               ${bgImageHtml}
               ${watermarkHtml}
               
-              <!-- 1. HEADER (Menempel Atas) -->
-              <div class="w-full flex justify-between items-start relative z-20 flex-none">
-                <div class="${spacerSize}"></div> 
-                <div class="${theme.textMain} cert-body-text opacity-80 text-xs font-bold uppercase tracking-widest text-center mt-2 px-2 leading-relaxed">
-                  ${val('b_travel', t.lblTravel)}
-                </div>
-                <div class="${spacerSize} flex justify-end">
-                  ${logoHtml}
-                </div>
-              </div>
-
-              <!-- 2. MIDDLE SECTION (Tengah Presisi: Title + Body) -->
-              <div class="flex-1 flex flex-col justify-center items-center w-full relative z-20 py-4">
+              <!-- 1. TOP SECTION (Paten mepet di atas) -->
+              <div class="w-full flex-none relative z-20">
                 
-                <!-- Title Section with Flags -->
-                <div class="flex justify-center items-center ${flagGapClass} w-full" ${isAr ? 'dir="ltr"' : ''}>
+                <!-- Header Row (Travel & Logo) -->
+                <div class="w-full flex justify-between items-start">
+                  <div class="${spacerSize}"></div> 
+                  <div class="${theme.textMain} cert-body-text opacity-80 text-xs font-bold uppercase tracking-widest text-center mt-2 px-2 leading-relaxed">
+                    ${val('b_travel', t.lblTravel)}
+                  </div>
+                  <div class="${spacerSize} flex justify-end">
+                    ${logoHtml}
+                  </div>
+                </div>
+
+                <!-- Title Row (Judul & Nomor) -->
+                <div class="flex justify-center items-center ${flagGapClass} w-full mt-2" ${isAr ? 'dir="ltr"' : ''}>
                   <div class="flex-shrink-0 pb-2">${flagID}</div>
-                  
                   <div class="text-center flex-1 ${maxWidthTitle}">
                     <h1 class="${titleTextClass} uppercase tracking-widest cert-title-text ${theme.title} leading-tight">
                       ${t.certTitle}
@@ -1233,15 +1239,16 @@
                       ${displayJenis}
                     </h2>
                     <div class="w-32 md:w-48 h-1 ${theme.bgInner} mx-auto mt-2 rounded-full opacity-50 border-t border-current"></div>
-                    <p class="mt-2 text-xs md:text-sm ${theme.textMain} cert-body-text opacity-80">${t.lblNomor}: ${val('b_nomor', 'BU-20260417-001')}</p>
+                    <p class="mt-2 text-[10px] md:text-xs ${theme.textMain} cert-body-text opacity-80">${t.lblNomor}: ${val('b_nomor', 'BU-20260417-001')}</p>
                   </div>
-                  
                   <div class="flex-shrink-0 pb-2">${flagSA}</div>
                 </div>
+              </div>
 
-                <!-- Body Text Section -->
-                <div class="text-center w-full mt-4 md:mt-8">
-                  <p class="text-sm md:text-base ${theme.textMain} cert-body-text mb-2 italic px-4">${t.certGivenTo}</p>
+              <!-- 2. MIDDLE SECTION (Satu grup, terpusat ke tengah vertikal) -->
+              <div class="flex-1 flex flex-col justify-center items-center w-full relative z-20 min-h-0 py-2">
+                <div class="text-center w-full">
+                  <p class="text-xs md:text-sm ${theme.textMain} cert-body-text mb-1 md:mb-2 italic px-4">${t.certGivenTo}</p>
                   
                   <h3 class="${nameTextClass} cert-script-text ${theme.accent} leading-tight w-full px-2 drop-shadow-sm">
                     ${val('b_peserta', t.lblPeserta)}
@@ -1252,27 +1259,26 @@
                     ${t.certDesc2} <strong class="cert-title-text">${displayMiqot}</strong> 
                     ${t.certDesc3} <strong class="cert-title-text">${val('b_waktu', '....................')}</strong>${isAr ? '،' : ','}<br> 
                     ${t.certDesc4} <br>
-                    <span class="text-base md:text-xl font-bold mt-4 inline-block border-b border-current border-dashed pb-1 px-6 cert-title-text">${val('b_pelaksana', t.lblPelaksana)}</span>
+                    <span class="text-sm md:text-lg font-bold ${pelaksanaMt} inline-block border-b border-current border-dashed pb-1 px-6 cert-title-text">${val('b_pelaksana', t.lblPelaksana)}</span>
                   </p>
                 </div>
-
               </div>
 
-              <!-- 3. BOTTOM SECTION (Hadith + Footer) -->
-              <div class="w-full relative z-20 flex-none">
+              <!-- 3. BOTTOM SECTION (Dalil & Footer, paten di bawah) -->
+              <div class="w-full flex-none relative z-20">
                 
-                <!-- Hadith Section (Garis dipertahankan) -->
-                <div class="w-full max-w-4xl mx-auto border-y border-current py-3 opacity-80 ${theme.textMain} mb-4 md:mb-6">
-                  <p class="cert-arabic-text ${hadithSizeClass} leading-loose mb-1" dir="rtl">
+                <!-- Dalil Section -->
+                <div class="w-full max-w-4xl mx-auto border-y border-current py-1.5 md:py-2 opacity-80 ${theme.textMain} mb-2 md:mb-4">
+                  <p class="cert-arabic-text ${hadithSizeClass} leading-loose mb-0 md:mb-1" dir="rtl">
                     حج عن أبيك واعتمر
                   </p>
-                  <p class="text-[10px] md:text-xs leading-relaxed px-4 cert-body-text" ${isAr ? 'dir="rtl"' : 'dir="ltr"'}>
+                  <p class="text-[9px] md:text-[10px] leading-relaxed px-4 cert-body-text" ${isAr ? 'dir="rtl"' : 'dir="ltr"'}>
                     ${t.hadithTranslation}
                   </p>
                 </div>
 
-                <!-- Footer Section -->
-                <div class="w-full flex justify-between items-end px-2 md:px-6">
+                <!-- Footer Section (Barcode, Signatures, dll) -->
+                <div class="w-full flex justify-between items-end px-2 md:px-6 pb-2">
                   
                   <!-- QR Dokumentasi -->
                   <div class="flex flex-col items-center justify-end pb-1 ${theme.textMain} cert-body-text">
@@ -1281,14 +1287,14 @@
 
                   <!-- Signature -->
                   <div class="text-center w-[200px] md:w-[300px] ${theme.textMain} cert-body-text">
-                    <p class="text-[10px] md:text-xs mb-1 leading-relaxed px-2" ${isAr ? 'dir="rtl"' : 'dir="ltr"'}>${formattedDateFull}</p>
-                    <p class="text-xs md:text-sm font-bold uppercase mb-12 md:mb-14">${val('b_travel', t.lblTravel)}</p>
+                    <p class="text-[9px] md:text-[10px] mb-1 leading-relaxed px-2" ${isAr ? 'dir="rtl"' : 'dir="ltr"'}>${formattedDateFull}</p>
+                    <p class="text-[10px] md:text-xs font-bold uppercase ${sigSpace}">${val('b_travel', t.lblTravel)}</p>
                     
                     <div class="relative w-full flex flex-col items-center">
                       ${ttdHtml}
                       <p class="font-bold border-b border-current inline-block pb-0.5 px-4 relative z-20 cert-title-text text-sm md:text-base">${val('b_penandatangan', t.lblPenandatangan)}</p>
                     </div>
-                    <p class="text-[10px] mt-1 uppercase tracking-wider">${val('b_jabatan', t.lblJabatan)}</p>
+                    <p class="text-[9px] mt-1 uppercase tracking-wider">${val('b_jabatan', t.lblJabatan)}</p>
                   </div>
 
                 </div>
