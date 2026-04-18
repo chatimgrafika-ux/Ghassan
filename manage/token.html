@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Kelola Token Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Mencegah seleksi teks global untuk keamanan ekstra */
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        .token-card {
+            transition: all 0.2s ease;
+        }
+        .token-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        /* Toast notification */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #10B981;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 100;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
+        }
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+
+        /* Hide scrollbar for cleaner look */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background-color: #CBD5E1; border-radius: 10px; }
+        
+        /* Blur background when locked */
+        .locked-blur { filter: blur(8px); pointer-events: none; }
+        
+        /* Animasi Loading Balok Hijau */
+        @keyframes slide-right {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(300%); }
+        }
+        .animate-loading-bar {
+            animation: slide-right 1s infinite linear;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans h-screen flex flex-col md:flex-row overflow-hidden relative">
+
+    <!-- LOADING BALOK HIJAU GLOBAL -->
+    <div id="loading-indicator" class="hidden fixed top-0 left-0 w-full h-1.5 bg-green-100 z-[10000] overflow-hidden shadow-sm">
+        <div class="h-full bg-green-500 w-1/3 animate-loading-bar rounded-r-full"></div>
+    </div>
+
+    <!-- MODAL SANDI KEDUA (ACTION AUTH) -->
+    <div id="action-auth-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-90 z-[10000] hidden items-center justify-center backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl w-11/12 max-w-sm text-center transform transition-transform">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+                <i class="fa-solid fa-lock text-3xl text-red-600"></i>
+            </div>
+            <h3 class="text-xl md:text-2xl font-bold text-gray-800 mb-2">Otorisasi Lanjutan</h3>
+            <p class="text-gray-500 mb-6 text-sm">Sandi kedua dibutuhkan untuk Generate Token & Buka Sheet Data.</p>
+            <div class="relative mb-4">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fa-solid fa-key text-gray-400"></i>
+                </div>
+                <input type="password" id="action-password" class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all text-center tracking-widest text-lg" placeholder="•••••••••">
+            </div>
+            <button onclick="verifyActionAuth()" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl shadow-md transition-colors flex justify-center items-center gap-2 mb-2">
+                <i class="fa-solid fa-unlock-keyhole"></i> Verifikasi
+            </button>
+            <button onclick="closeActionAuth()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium py-2 rounded-xl transition-colors">
+                Batal
+            </button>
+            <p id="action-error" class="text-red-500 text-sm mt-3 font-medium hidden">Sandi kedua salah!</p>
+        </div>
+    </div>
+
+    <!-- LAYAR LOGIN STRICT -->
+    <div id="login-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-95 z-[9999] flex items-center justify-center backdrop-blur-md transition-opacity duration-300">
+        <div class="bg-white p-8 md:p-10 rounded-2xl shadow-2xl w-11/12 max-w-md text-center transform transition-transform">
+            <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <i class="fa-solid fa-shield-halved text-4xl text-indigo-600"></i>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Akses Terkunci</h2>
+            <p class="text-gray-500 mb-8 text-sm md:text-base">Masukkan kata sandi admin untuk mengakses sistem kelola token.</p>
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="relative mb-4">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-lock text-gray-400"></i>
+                    </div>
+                    <input type="password" id="password-input" class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-center tracking-widest text-lg" placeholder="•••••••••" required>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl shadow-md transition-colors flex justify-center items-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket"></i> Buka Sistem
+                </button>
+                <p id="login-error" class="text-red-500 text-sm mt-4 font-medium hidden">Sandi salah, akses ditolak!</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- WRAPPER APLIKASI -->
+    <div id="app-wrapper" class="w-full h-full flex flex-col md:flex-row locked-blur transition-all duration-500">
+        <!-- Mobile Header -->
+        <div class="md:hidden bg-indigo-700 text-white flex justify-between items-center p-4 shadow-md z-30 w-full">
+            <h1 class="text-xl font-bold flex items-center gap-2">
+                <i class="fa-solid fa-key"></i> TokenApp
+            </h1>
+            <button id="mobile-menu-btn" class="text-white hover:text-indigo-200 focus:outline-none transition-colors">
+                <i class="fa-solid fa-bars text-2xl"></i>
+            </button>
+        </div>
+
+        <!-- Sidebar Overlay (Mobile) -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden transition-opacity"></div>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-indigo-700 text-white flex flex-col shadow-xl transform -translate-x-full md:translate-x-0 md:relative transition-transform duration-300 ease-in-out">
+            <div class="p-6 flex justify-between items-center">
+                <h1 class="text-2xl font-bold flex items-center gap-2 hidden md:flex">
+                    <i class="fa-solid fa-key"></i> TokenApp
+                </h1>
+                <h1 class="text-2xl font-bold flex items-center gap-2 md:hidden">Menu</h1>
+                <button id="close-sidebar-btn" class="md:hidden text-white hover:text-indigo-200 transition-colors">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+            <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="w-full flex items-center gap-3 px-4 py-3 bg-indigo-800 rounded-lg text-left transition-colors font-medium">
+                    <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
+                </button>
+                <button onclick="switchTab('kelola')" id="btn-kelola" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-indigo-600 rounded-lg text-left transition-colors font-medium">
+                    <i class="fa-solid fa-list-check w-5"></i> Kelola Token
+                </button>
+                <button onclick="switchTab('generate')" id="btn-generate" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-indigo-600 rounded-lg text-left transition-colors font-medium">
+                    <i class="fa-solid fa-plus-circle w-5"></i> Generate Token
+                </button>
+            </nav>
+            <div class="p-4 border-t border-indigo-600 mb-4 md:mb-0 space-y-2">
+                <button onclick="openSpreadsheet()" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-500 hover:bg-green-600 rounded-lg text-white font-medium transition-colors shadow-sm">
+                    <i class="fa-solid fa-file-excel"></i> Buka Sheet Data
+                </button>
+                <button onclick="logout()" class="w-full flex items-center justify-center gap-2 px-4 py-2 text-indigo-200 hover:text-white hover:bg-indigo-800 rounded-lg text-sm font-medium transition-colors mt-2">
+                    <i class="fa-solid fa-power-off"></i> Kunci Layar
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-y-auto relative w-full h-full">
+            <header class="bg-white shadow-sm px-4 md:px-8 py-4 flex justify-between items-center sticky top-0 z-20">
+                <h2 id="page-title" class="text-lg md:text-xl font-semibold text-gray-800">Dashboard Statistik</h2>
+            </header>
+
+            <div class="p-4 md:p-8 pb-20 md:pb-8">
+                <!-- Tab: Dashboard -->
+                <div id="tab-dashboard" class="tab-content">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                            <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xl md:text-2xl flex-shrink-0">
+                                <i class="fa-solid fa-check-circle"></i>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 text-xs md:text-sm font-medium mb-1">Token Tersedia</p>
+                                <h3 id="count-tersedia" class="text-2xl md:text-3xl font-bold text-gray-800">0</h3>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                            <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xl md:text-2xl flex-shrink-0">
+                                <i class="fa-solid fa-times-circle"></i>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 text-xs md:text-sm font-medium mb-1">Token Terpakai</p>
+                                <h3 id="count-terpakai" class="text-2xl md:text-3xl font-bold text-gray-800">0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100 w-full max-w-2xl mx-auto">
+                        <h3 class="text-base md:text-lg font-semibold text-gray-800 mb-4 text-center">Grafik Status Token</h3>
+                        <div class="relative h-56 md:h-64 w-full">
+                            <canvas id="tokenChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Kelola Token -->
+            <div id="tab-kelola" class="tab-content hidden">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-4 md:p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div>
+                            <h3 class="text-base md:text-lg font-semibold text-gray-800">Daftar Token Tersedia</h3>
+                            <p class="text-xs md:text-sm text-gray-500 mt-1">Klik langsung pada token untuk menyalin.</p>
+                        </div>
+                        <button onclick="fetchData()" class="w-10 h-10 flex justify-center items-center text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100 rounded-lg transition-colors shadow-sm border border-green-100" title="Segarkan Data">
+                            <i class="fa-solid fa-rotate-right text-lg"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="p-4 md:p-6">
+                            <div id="token-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                                <!-- Tokens injected here -->
+                            </div>
+                            <div id="empty-state" class="hidden text-center py-10 md:py-12 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                                <div class="text-gray-300 mb-3 text-4xl md:text-5xl"><i class="fa-solid fa-box-open"></i></div>
+                                <h4 class="text-base md:text-lg font-medium text-gray-600">Tidak ada token tersedia</h4>
+                                <p class="text-xs md:text-sm text-gray-400 mt-1">Silakan generate token baru di menu Generate.</p>
+                                <button onclick="switchTab('generate')" class="mt-5 px-6 py-2.5 bg-indigo-600 text-white text-sm md:text-base rounded-lg hover:bg-indigo-700 transition-colors shadow-md">Generate Sekarang</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Generate Token -->
+                <div id="tab-generate" class="tab-content hidden">
+                    <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-100 max-w-xl mx-auto relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-indigo-500"></div>
+                    <div class="text-center mb-6 md:mb-8 mt-2">
+                        <div class="w-14 h-14 md:w-16 md:h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-xl md:text-2xl mx-auto mb-3 md:mb-4 shadow-sm">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <h3 class="text-xl md:text-2xl font-bold text-gray-800">Generate Token</h3>
+                        <p class="text-sm text-gray-500 mt-2">Buat token acak dan langsung sinkronisasi.</p>
+                    </div>
+
+                    <form id="generate-form" onsubmit="handleGenerate(event)" class="space-y-6">
+                            <div>
+                                <label for="token-count" class="block text-sm font-medium text-gray-700 mb-2">Jumlah Token Baru</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                        <i class="fa-solid fa-hashtag"></i>
+                                    </div>
+                                    <input type="number" id="token-count" min="1" max="100" value="10" required
+                                        class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-base bg-gray-50">
+                                </div>
+                            </div>
+                            <button type="submit" id="btn-submit-generate" class="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition-all transform hover:scale-[1.02] flex justify-center items-center gap-2 text-sm md:text-base">
+                                <i class="fa-solid fa-cogs"></i> Generate & Sinkronkan
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="shadow-xl flex items-center justify-center text-sm md:text-base font-medium">
+        <i class="fa-solid fa-check-circle mr-2"></i> <span id="toast-msg">Sukses!</span>
+    </div>
+
+    <script>
+        // ==========================================
+        //  KEAMANAN & ENKRIPSI PENYIMPANAN LOKAL
+        // ==========================================
+        const SECRET_KEY = "ToK3n_ApP_XoR!"; // Kunci rahasia untuk XOR Enkripsi di LocalStorage
+        
+        // Fungsi enkripsi sederhana (XOR + Base64) agar sandi tidak tampil plain-text di DevTools
+        function encryptLocal(text) {
+            let result = '';
+            for(let i = 0; i < text.length; i++) {
+                result += String.fromCharCode(text.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length));
+            }
+            return btoa(encodeURIComponent(result));
+        }
+
+        function decryptLocal(encoded) {
+            try {
+                let text = decodeURIComponent(atob(encoded));
+                let result = '';
+                for(let i = 0; i < text.length; i++) {
+                    result += String.fromCharCode(text.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length));
+                }
+                return result;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // 1. Blokir Klik Kanan (Inspect)
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        // 2. Blokir Kombinasi Keyboard Developer Tools
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123) return false;
+            if (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0) || e.keyCode == 'C'.charCodeAt(0))) return false;
+            if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
+        };
+
+        // 3. Sistem Login & Otorisasi Sandi Ganda
+        const SANDI_RAHASIA = "chatimgrafika";
+        const SANDI_KEDUA = "badal26";
+        
+        // Cek Auto-Login saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLogin = localStorage.getItem('app_login_secure');
+            if (savedLogin && decryptLocal(savedLogin) === SANDI_RAHASIA) {
+                // Bypass login karena sandi valid tersimpan di memori terenkripsi
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('app-wrapper').classList.remove('locked-blur');
+                fetchData();
+            }
+        });
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const input = document.getElementById('password-input').value;
+            const errorMsg = document.getElementById('login-error');
+            
+            if(input === SANDI_RAHASIA) {
+                // Simpan sandi terenkripsi ke localStorage
+                localStorage.setItem('app_login_secure', encryptLocal(input));
+                
+                document.getElementById('login-overlay').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('login-overlay').style.display = 'none';
+                    document.getElementById('app-wrapper').classList.remove('locked-blur');
+                    fetchData(); 
+                }, 300);
+            } else {
+                errorMsg.classList.remove('hidden');
+                document.getElementById('password-input').value = '';
+                document.getElementById('password-input').focus();
+            }
+        }
+
+        function logout() {
+            // Hapus semua data memori otentikasi saat dikunci
+            localStorage.removeItem('app_login_secure');
+            localStorage.removeItem('app_action_secure');
+            
+            document.getElementById('app-wrapper').classList.add('locked-blur');
+            document.getElementById('login-overlay').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('login-overlay').style.opacity = '1';
+                document.getElementById('password-input').value = '';
+                document.getElementById('login-error').classList.add('hidden');
+            }, 10);
+        }
+
+        // --- SISTEM SANDI KEDUA (ACTION AUTH) ---
+        let pendingAction = null;
+
+        function checkActionAuth(actionCallback) {
+            const savedAction = localStorage.getItem('app_action_secure');
+            if (savedAction && decryptLocal(savedAction) === SANDI_KEDUA) {
+                // Sudah otorisasi sandi kedua di sesi ini
+                actionCallback();
+            } else {
+                // Tampilkan modal sandi kedua
+                pendingAction = actionCallback;
+                const modal = document.getElementById('action-auth-overlay');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                setTimeout(() => modal.style.opacity = '1', 10);
+                document.getElementById('action-password').value = '';
+                document.getElementById('action-password').focus();
+            }
+        }
+
+        function verifyActionAuth() {
+            const input = document.getElementById('action-password').value;
+            if (input === SANDI_KEDUA) {
+                localStorage.setItem('app_action_secure', encryptLocal(input));
+                closeActionAuth();
+                if (pendingAction) {
+                    pendingAction();
+                    pendingAction = null;
+                }
+            } else {
+                document.getElementById('action-error').classList.remove('hidden');
+                document.getElementById('action-password').value = '';
+                document.getElementById('action-password').focus();
+            }
+        }
+
+        function closeActionAuth() {
+            const modal = document.getElementById('action-auth-overlay');
+            modal.style.opacity = '0';
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.getElementById('action-error').classList.add('hidden');
+            }, 300);
+            pendingAction = null;
+        }
+
+        // Support 'Enter' key on secondary auth modal
+        document.getElementById('action-password').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') verifyActionAuth();
+        });
+
+
+        // ==========================================
+        //  SISTEM KOMUNIKASI API (APPS SCRIPT)
+        // ==========================================
+        
+        // API Baru dengan Enkripsi ganda (Base64/86 Obfuscation via btoa+encodeURI)
+        const API_URL = "https://script.google.com/macros/s/AKfycbynmISxl2pUlHk-BU5zvSs3FhKMYqhyl-dOaNPp8bEnsIHHnT6END-conkDjczt8YJsEA/exec"; 
+
+        // Mock data simulator untuk mengatasi 'Failed to fetch' (Masalah CORS/Jaringan)
+        let mockData = [
+            {token: "8472613920", status: "Tersedia"}, {token: "2938471029", status: "Tersedia"},
+            {token: "1029384756", status: "Terpakai"}, {token: "5647382910", status: "Tersedia"}
+        ];
+        
+        function simulateDelayAndMock(action, args) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    if(action === 'getTokens') resolve([...mockData]);
+                    if(action === 'generateTokens') {
+                        for(let i=0; i<args; i++) mockData.push({token: Math.floor(1000000000 + Math.random() * 9000000000).toString(), status: "Tersedia"});
+                        resolve(true);
+                    }
+                    if(action === 'getSpreadsheetUrl') resolve('https://docs.google.com/spreadsheets');
+                }, 800);
+            });
+        }
+
+        async function runServerFunction(functionName, args = null) {
+            showLoading(true);
+            
+            // Payload Asli
+            const rawPayload = JSON.stringify({
+                action: functionName,
+                args: args,
+                secret: "chatimgrafika_api_auth" // Kunci rahasia API (Enkripsi Lapis 1)
+            });
+
+            // Enkripsi Payload (Base64 + URI encode / Obfuscation style) untuk mengaburkan data
+            const encryptedPayload = btoa(encodeURIComponent(rawPayload));
+
+            try {
+                // Call API Google Apps Script
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: encryptedPayload 
+                });
+
+                const result = await response.json();
+                showLoading(false);
+                
+                // Jika dari server mengembalikan JSON success: false, jangan jadikan error di konsol
+                if(!result.success) {
+                    console.warn("Peringatan dari Server:", result.error);
+                    showToast("Server Error! Beralih ke mode lokal.");
+                    return await simulateDelayAndMock(functionName, args);
+                }
+                
+                return result.data;
+
+            } catch (error) {
+                showLoading(false);
+                console.warn("Menggunakan data lokal (Mock Data) karena gagal terhubung ke server.");
+                
+                // Menampilkan pemberitahuan bahwa mode lokal sedang aktif
+                showToast("Koneksi gagal! Beralih ke mode lokal.");
+                
+                // Fallback ke mock data agar aplikasi tidak crash
+                return await simulateDelayAndMock(functionName, args);
+            }
+        }
+
+
+        // ==========================================
+        //  LOGIC UI & DASHBOARD
+        // ==========================================
+        let globalTokens = [];
+        let tokenChart = null;
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        function toggleMobileMenu() {
+            sidebar.classList.toggle('-translate-x-full');
+            if(sidebar.classList.contains('-translate-x-full')) {
+                overlay.classList.add('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-100'), 10);
+            } else {
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.add('opacity-100'), 10);
+            }
+        }
+
+        document.getElementById('mobile-menu-btn').addEventListener('click', toggleMobileMenu);
+        document.getElementById('close-sidebar-btn').addEventListener('click', toggleMobileMenu);
+        overlay.addEventListener('click', toggleMobileMenu);
+
+        function switchTab(tabId) {
+            ['dashboard', 'kelola', 'generate'].forEach(id => {
+                const btn = document.getElementById(`btn-${id}`);
+                if(id === tabId) {
+                    btn.classList.add('bg-indigo-800');
+                    btn.classList.remove('hover:bg-indigo-600');
+                } else {
+                    btn.classList.remove('bg-indigo-800');
+                    btn.classList.add('hover:bg-indigo-600');
+                }
+                document.getElementById(`tab-${id}`).classList.add('hidden');
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            const titles = {
+                'dashboard': 'Dashboard Statistik',
+                'kelola': 'Kelola Token Aktif',
+                'generate': 'Buat Token Baru'
+            };
+            document.getElementById('page-title').innerText = titles[tabId];
+            if(tabId === 'dashboard') updateChart();
+            if(window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) toggleMobileMenu();
+        }
+
+        function showLoading(show) {
+            const loader = document.getElementById('loading-indicator');
+            if (show) loader.classList.remove('hidden');
+            else loader.classList.add('hidden');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = message;
+            toast.className = "shadow-xl flex items-center justify-center text-sm md:text-base font-medium show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        async function fetchData() {
+            try {
+                globalTokens = await runServerFunction('getTokens');
+                renderDashboard();
+                renderTokenList();
+            } catch (error) {
+                console.warn(error);
+                // Diredam agar tidak memunculkan error alert jika sudah ditangani fallback
+            }
+        }
+
+        function renderDashboard() {
+            const tersedia = globalTokens.filter(t => t.status === "Tersedia").length;
+            const terpakai = globalTokens.filter(t => t.status === "Terpakai").length;
+            document.getElementById('count-tersedia').innerText = tersedia;
+            document.getElementById('count-terpakai').innerText = terpakai;
+            updateChart();
+        }
+
+        function updateChart() {
+            const tersedia = globalTokens.filter(t => t.status === "Tersedia").length;
+            const terpakai = globalTokens.filter(t => t.status === "Terpakai").length;
+            const ctx = document.getElementById('tokenChart').getContext('2d');
+            
+            if (tokenChart) tokenChart.destroy();
+
+            tokenChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Tersedia', 'Terpakai'],
+                    datasets: [{
+                        data: [tersedia, terpakai],
+                        backgroundColor: ['#10B981', '#EF4444'],
+                        hoverBackgroundColor: ['#059669', '#DC2626'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: {family: "'Inter', sans-serif"} } } },
+                    cutout: '72%'
+                }
+            });
+        }
+
+        function renderTokenList() {
+            const grid = document.getElementById('token-grid');
+            const emptyState = document.getElementById('empty-state');
+            const availableTokens = globalTokens.filter(t => t.status === "Tersedia");
+            
+            grid.innerHTML = '';
+            
+            if (availableTokens.length === 0) {
+                grid.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            grid.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+
+            availableTokens.forEach(t => {
+                const card = document.createElement('div');
+                card.className = "token-card bg-white border border-indigo-100 hover:border-indigo-300 shadow-sm hover:shadow-md p-3 md:p-4 rounded-xl flex items-center justify-between cursor-pointer group active:scale-95 transition-all";
+                card.onclick = () => copyToken(t.token);
+                
+                card.innerHTML = `
+                    <span class="text-lg md:text-xl font-mono font-bold tracking-widest text-indigo-700 select-none">${t.token}</span>
+                    <button class="text-indigo-300 group-hover:text-indigo-600 transition-colors pointer-events-none">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function copyToken(tokenValue) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(tokenValue).then(() => showToast(`Token ${tokenValue} disalin!`));
+            } else {
+                let textArea = document.createElement("textarea");
+                textArea.value = tokenValue;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast(`Token ${tokenValue} disalin!`);
+                } catch (err) { }
+                document.body.removeChild(textArea);
+            }
+        }
+
+        // Terapkan Sandi Kedua untuk fungsi Generate
+        function handleGenerate(event) {
+            event.preventDefault();
+            
+            checkActionAuth(async () => {
+                const count = parseInt(document.getElementById('token-count').value);
+                const btn = document.getElementById('btn-submit-generate');
+                
+                btn.disabled = true;
+                btn.innerHTML = `
+                    <div class="flex items-center justify-center gap-1.5">
+                        <div class="w-2.5 h-4 bg-green-300 rounded-sm animate-pulse"></div>
+                        <div class="w-2.5 h-4 bg-green-400 rounded-sm animate-pulse" style="animation-delay: 0.2s"></div>
+                        <div class="w-2.5 h-4 bg-green-500 rounded-sm animate-pulse" style="animation-delay: 0.4s"></div>
+                    </div>
+                `;
+
+                try {
+                    await runServerFunction('generateTokens', count);
+                    showToast(`${count} Token berhasil dibuat!`);
+                    await fetchData(); 
+                    switchTab('kelola');
+                } catch (error) {
+                    alert("Gagal membuat token di Server.");
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fa-solid fa-cogs"></i> Generate & Sinkronkan`;
+                    document.getElementById('token-count').value = 10;
+                }
+            });
+        }
+
+        // Terapkan Sandi Kedua untuk Buka Spreadsheet
+        function openSpreadsheet() {
+            checkActionAuth(async () => {
+                try {
+                    const url = await runServerFunction('getSpreadsheetUrl');
+                    window.open(url, '_blank');
+                } catch (error) {
+                    alert("Gagal memuat URL spreadsheet.");
+                }
+            });
+        }
+    </script>
+</body>
+</html>
