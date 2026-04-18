@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Badal - Photo Documentation Generator</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons & FontAwesome (Untuk icon) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* 12+ Font Combinations Imported */
+    @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Amiri:ital,wght@0,400;0,700;1,400&family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;700&family=Cinzel:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Courgette&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Inter:wght@400;500;600;700&family=Lato:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;700&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Oswald:wght@400;500;600;700&family=Pacifico&family=Parisienne&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Poppins:ital,wght@0,400;0,600;0,700;1,400&family=Reem+Kufi:wght@400;500;600;700&family=Roboto+Slab:wght@400;500;600;700&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Satisfy&family=Scheherazade+New:wght@400;700&family=Tajawal:wght@400;500;700&display=swap');
+    
+    :root {
+      --primary: #047857; /* Emerald 600 */
+      --primary-dark: #064e3b; /* Emerald 900 */
+      --primary-bg: #ecfdf5; /* Emerald 50 */
+      --accent: #d97706; /* Amber 600 */
+
+      /* Variabel Font Dinamis */
+      --font-title: 'Playfair Display', serif;
+      --font-body: 'Inter', sans-serif;
+      --font-arabic: 'Amiri', serif;
+      --font-script: 'Great Vibes', cursive;
+    }
+
+    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+    
+    /* Document Fonts Override */
+    .cert-title-text { font-family: var(--font-title) !important; }
+    .cert-body-text { font-family: var(--font-body) !important; }
+    .cert-arabic-text { font-family: var(--font-arabic) !important; }
+    .cert-script-text { font-family: var(--font-script) !important; }
+
+    /* Custom Scrollbars */
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+    /* Certificate Layout */
+    .cert-wrapper { perspective: 1000px; }
+    
+    .certificate-container {
+      margin: 0 auto;
+      background: white;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      position: relative;
+      box-sizing: border-box;
+      transition: all 0.4s ease;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+    }
+
+    /* Orientasi Presisi */
+    .landscape { width: 297mm; height: 210mm; min-width: 297mm; min-height: 210mm; }
+    .portrait { width: 210mm; height: 297mm; min-width: 210mm; min-height: 297mm; }
+
+    .cert-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 10;
+      padding: 4mm;
+      display: flex;
+      flex-direction: column;
+      background-size: cover;
+      background-position: center;
+    }
+
+    /* Base Print CSS, Page Size dynamic override via JS */
+    @media print {
+      html, body { 
+        margin: 0 !important; 
+        padding: 0 !important; 
+        background: white !important; 
+        -webkit-print-color-adjust: exact !important; 
+        print-color-adjust: exact !important; 
+      }
+      
+      header, #form-panel, #loginModal, #premiumModal, #splash-screen, .print\:hidden {
+        display: none !important;
+      }
+
+      #main-app, .flex-1, #preview-section, #preview-viewport, #cert-wrapper {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        transform: none !important;
+        overflow: visible !important;
+      }
+
+      #cert-container {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        transform: none !important;
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
+      }
+      
+      .landscape { width: 297mm !important; height: 210mm !important; }
+      .portrait { width: 210mm !important; height: 297mm !important; }
+      ::-webkit-scrollbar { display: none !important; }
+    }
+
+    /* Islamic Pattern Backgrounds */
+    .pattern-overlay {
+      position: absolute;
+      inset: 0;
+      opacity: 0.05;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .fade-enter { opacity: 0; transform: scale(0.98); }
+    .fade-enter-active { opacity: 1; transform: scale(1); transition: opacity 400ms, transform 400ms; }
+    .thumb-active { border-color: var(--primary) !important; ring: 2px; ring-color: var(--primary); transform: scale(1.05); }
+
+    /* Photo Aesthetic Classes */
+    .photo-filter {
+      filter: contrast(1.05) saturate(1.1);
+      transition: all 0.3s ease;
+    }
+    
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    /* Realistic Signature Blend */
+    .realistic-signature {
+      mix-blend-mode: multiply;
+      filter: drop-shadow(0px 1px 1px rgba(0,0,0,0.1));
+    }
+
+    #main-app { opacity: 0; transition: opacity 0.8s ease-in-out; }
+    #main-app.loaded { opacity: 1; }
+  </style>
+  <style id="dynamic-print-style">
+    @page { size: A4 landscape; margin: 0; }
+  </style>
+</head>
+<body class="overflow-hidden h-screen bg-[#0f172a] select-none" oncontextmenu="return false;">
+
+  <!-- ================= MODAL PREMIUM ================= -->
+  <div id="premiumModal" class="hidden fixed inset-0 z-[250] bg-black/60 backdrop-blur-sm flex items-center justify-center transition-all duration-300">
+      <div class="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 text-center shadow-2xl relative">
+          <button onclick="document.getElementById('premiumModal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition-colors">
+              <i class="fas fa-times text-lg"></i>
+          </button>
+          
+          <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 mt-2 border border-amber-200 shadow-inner">
+              <i class="fas fa-crown text-2xl"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800 mb-2">Mode Premium Diperlukan</h3>
+          <p class="text-sm text-slate-600 mb-6 leading-relaxed">Anda sedang menggunakan mode gratis dengan cap air. Untuk membuka semua tema dan fitur penuh tanpa batas, silakan dapatkan token Premium.</p>
+          
+          <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-6">
+              <p class="text-xs font-semibold text-emerald-800 mb-2">Hubungi WhatsApp Ghassan:</p>
+              <a href="https://wa.me/62895417778539" target="_blank" class="text-lg font-bold text-emerald-600 hover:text-emerald-700 flex items-center justify-center gap-2 transition-all hover:scale-105">
+                  <i class="fab fa-whatsapp text-2xl"></i> +62 895-4177-78539
+              </a>
+          </div>
+          
+          <button onclick="document.getElementById('premiumModal').classList.add('hidden'); showLoginModal();" class="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold rounded-xl py-3 shadow-lg hover:shadow-xl transition-all text-sm mb-2">
+              Sudah punya token? Login
+          </button>
+      </div>
+  </div>
+
+  <!-- ================= MODAL LOGIN ================= -->
+  <div id="loginModal" class="hidden fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center transition-all duration-300">
+    <div id="loginView" class="flex flex-col items-center justify-center p-6 w-full max-w-md mx-auto relative transform scale-95 transition-transform duration-300">
+        <button onclick="closeLoginModal()" class="absolute top-10 right-4 text-white hover:text-red-400 z-50 p-2"><i class="fas fa-times text-xl"></i></button>
+        <div class="w-full bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-white/50 relative overflow-hidden mt-10">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-green-600"></div>
+            <div class="bg-slate-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-slate-100">
+                <img src="https://lh3.googleusercontent.com/d/1MGa9w-C1cIi_-PVDNJoVOYfgkAzM7cRd" class="w-16 h-16 object-contain drop-shadow-md" alt="Logo Ghassan" onerror="this.style.display='none'">
+            </div>
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-2">Portal Security</h2>
+            <p class="text-xs text-center text-gray-500 mb-8 leading-relaxed">Masukkan kode sandi akses / token premium.</p>
+            <div class="space-y-4 mb-8">
+                <div class="w-full relative">
+                    <label class="text-xs font-semibold text-gray-700 mb-1.5 block">Sandi Akses</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-4 top-3.5 text-gray-400"></i>
+                        <input type="password" id="password" class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 text-sm outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all font-medium" placeholder="Masukkan token premium">
+                    </div>
+                </div>
+            </div>
+            <button onclick="handleLogin()" id="btnLogin" class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl py-4 shadow-lg hover:shadow-green-600/50 active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-2">
+                <span>Verifikasi Sandi</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+  </div>
+
+  <!-- ================= SPLASH SCREEN ================= -->
+  <div id="splash-screen" class="fixed inset-0 z-[100] bg-[#0f172a] flex flex-col items-center justify-center p-6 text-center transition-all duration-700">
+    <div class="w-32 mb-8 relative">
+      <div class="absolute inset-0 bg-amber-500 blur-2xl opacity-20 rounded-full animate-pulse"></div>
+      <img src="https://lh3.googleusercontent.com/d/1MGa9w-C1cIi_-PVDNJoVOYfgkAzM7cRd" alt="Logo Ghassan" class="relative z-10 w-full h-full object-contain drop-shadow-[0_0_15px_rgba(217,119,6,0.6)] animate-bounce" style="animation-duration: 2s;" />
+    </div>
+    <h3 class="text-center flex flex-col items-center">
+      <span class="block text-3xl mb-3 font-serif tracking-[0.2em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-500 to-amber-200">Ghassan</span>
+      <span class="text-[10px] font-medium text-amber-200/60 uppercase tracking-[0.4em] flex items-center gap-2 bg-amber-900/30 px-4 py-1.5 rounded-full border border-amber-500/20">
+        <i data-lucide="loader-2" class="w-3 h-3 animate-spin text-amber-400"></i> Memuat Workspace...
+      </span>
+    </h3>
+  </div>
+
+  <!-- ================= MAIN APP ================= -->
+  <div id="main-app" class="h-screen w-full flex flex-col">
+    
+    <!-- HEADER GLOBAL -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-sm p-4 border-b border-slate-200 flex justify-between items-center shadow-sm flex-shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 flex items-center justify-center">
+          <img src="https://lh3.googleusercontent.com/d/1MGa9w-C1cIi_-PVDNJoVOYfgkAzM7cRd" alt="Ghassan Logo" class="w-full h-full object-contain" />
+        </div>
+        <div>
+          <h1 class="text-sm font-black text-slate-800 tracking-tight uppercase">Ghassan</h1>
+          <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest" data-i18n="appTitle">Dokumentasi Badal</p>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="toggleLanguage()" class="flex items-center gap-1 p-2 text-slate-500 hover:text-emerald-600 bg-slate-100 border border-slate-200 rounded-lg transition-colors font-bold text-xs" title="Ganti Bahasa">
+          <i class="fas fa-language"></i> <span id="lang-text">ID</span>
+        </button>
+        <button onclick="togglePreview()" class="p-2 text-slate-400 hover:text-emerald-500 bg-slate-100 rounded-lg transition-colors" title="Toggle Preview">
+          <i data-lucide="eye-off" id="toggle-preview-icon" class="w-5 h-5"></i>
+        </button>
+        <button onclick="resetData()" class="p-2 text-slate-400 hover:text-red-500 bg-red-50 rounded-lg transition-colors hidden sm:block" title="Reset Form">
+          <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+        </button>
+        <button onclick="attemptPrint()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition-colors shadow-md">
+          <i data-lucide="printer" class="w-4 h-4"></i> <span class="hidden sm:inline" data-i18n="btnCetak">CETAK PDF</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENT SPLIT -->
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
+      
+      <!-- LEFT: CONTROL PANEL (FORM) -->
+      <div id="form-panel" class="w-full md:w-[450px] lg:w-[500px] flex-1 md:h-full flex flex-col bg-white md:border-r border-slate-200 shadow-2xl z-20 flex-shrink-0 order-2 md:order-1 overflow-y-auto">
+        <div class="p-5 space-y-6 custom-scrollbar pb-24" id="form-container">
+          
+          <!-- Template Selector -->
+          <section>
+            <h2 class="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+              <i data-lucide="layout" class="w-3 h-3 text-emerald-600"></i> <span data-i18n="secDesign">Desain Dokumentasi (20 Tema)</span>
+            </h2>
+            <div class="grid grid-cols-4 md:grid-cols-5 gap-2" id="template-selector">
+              <!-- Thumbnails generated by JS -->
+            </div>
+          </section>
+
+          <!-- Global Attributes (Dipindah ke atas agar mempengaruhi jumlah foto otomatis) -->
+          <section class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <h2 class="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3" data-i18n="secAttr">Atribut Dokumen</h2>
+            
+            <div class="mb-4">
+               <label class="block text-[10px] font-semibold text-slate-400 mb-1" data-i18n="lblOrientasi">Orientasi Dokumen</label>
+               <div class="flex gap-2">
+                  <button onclick="setOrientation('landscape')" id="btn-landscape" class="flex-1 bg-white border border-emerald-500 text-emerald-600 p-2 rounded-lg text-xs font-semibold transition-colors shadow-sm">Landscape (A4)</button>
+                  <button onclick="setOrientation('portrait')" id="btn-portrait" class="flex-1 bg-white border border-slate-200 text-slate-600 p-2 rounded-lg text-xs font-semibold hover:border-emerald-500 transition-colors shadow-sm">Portrait (A4)</button>
+               </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mb-4">
+              <div>
+                <label class="block text-[10px] font-semibold text-slate-400 mb-1" data-i18n="lblTanggal">Tanggal Pelaksanaan</label>
+                <input type="date" id="b_tanggal" class="input-field w-full p-2.5 bg-white border border-slate-200 rounded-lg text-xs focus:border-emerald-500 focus:ring-2 outline-none shadow-sm transition-all" onchange="queueAutoSave()" oninput="queueAutoSave()" />
+              </div>
+              <div>
+                <label class="block text-[10px] font-semibold text-slate-400 mb-1" data-i18n="lblLokasi">Lokasi</label>
+                <input type="text" id="b_lokasi" value="Makkah Al-Mukarramah" class="input-field w-full p-2.5 bg-white border border-slate-200 rounded-lg text-xs focus:border-emerald-500 focus:ring-2 outline-none shadow-sm transition-all" oninput="handleInputFilter(this)" />
+              </div>
+              <div class="col-span-2">
+                <label class="block text-[10px] font-semibold text-slate-400 mb-1" data-i18n="lblJenis">Jenis Badal (Otomatis menyesuaikan jumlah slot foto)</label>
+                <select id="b_jenis" class="input-field w-full p-2.5 bg-white border border-slate-200 rounded-lg text-xs focus:border-emerald-500 focus:ring-2 outline-none shadow-sm transition-all font-bold text-emerald-700" onchange="handleJenisChange()">
+                  <option value="Badal Umroh" data-i18n="valUmroh">Badal Umroh (4 Foto)</option>
+                  <option value="Badal Haji & Umroh" data-i18n="valHajiUmroh">Badal Haji & Umroh (10 Foto)</option>
+                  <option value="Badal Haji" data-i18n="valHaji">Badal Haji (10 Foto)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="col-span-2 grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[10px] font-semibold text-slate-400 mb-1" data-i18n="lblFont">Font (12 Variasi)</label>
+                  <select id="b_font" class="input-field w-full p-2.5 bg-white border border-slate-200 rounded-lg text-xs outline-none shadow-sm transition-all font-semibold" onchange="changeFontCombo()">
+                    <option value="0" data-i18n="fontCombo0">1. Klasik Formal</option>
+                    <option value="1" data-i18n="fontCombo1">2. Mewah & Elegan</option>
+                    <option value="2" data-i18n="fontCombo2">3. Tradisional Islam</option>
+                    <option value="3" data-i18n="fontCombo3">4. Modern Bersih</option>
+                    <option value="4" data-i18n="fontCombo4">5. Akademik Vintage</option>
+                    <option value="5" data-i18n="fontCombo5">6. Geometris Tegas</option>
+                    <option value="6" data-i18n="fontCombo6">7. Minimalis Lembut</option>
+                    <option value="7" data-i18n="fontCombo7">8. Warisan Kerajaan</option>
+                    <option value="8" data-i18n="fontCombo8">9. Kontemporer</option>
+                    <option value="9" data-i18n="fontCombo9">10. Serif Dinamis</option>
+                    <option value="10" data-i18n="fontCombo10">11. Distingtif Karakter</option>
+                    <option value="11" data-i18n="fontCombo11">12. Serif Minimalis</option>
+                  </select>
+                </div>
+                <div id="collage-wrapper">
+                  <label class="block text-[10px] font-semibold text-slate-400 mb-1" data-i18n="lblCollage">Model Kolase (4 Foto)</label>
+                  <select id="b_collage" class="input-field w-full p-2.5 bg-white border border-slate-200 rounded-lg text-xs outline-none shadow-sm transition-all font-semibold" onchange="queueAutoSave()">
+                    <option value="0" data-i18n="col0">1. Klasik (2x2)</option>
+                    <option value="1" data-i18n="col1">2. Hero Atas (1 Besar)</option>
+                    <option value="2" data-i18n="col2">3. Hero Kiri (1 Besar)</option>
+                    <option value="3" data-i18n="col3">4. Hero Bawah (1 Besar)</option>
+                    <option value="4" data-i18n="col4">5. Hero Kanan (1 Besar)</option>
+                    <option value="5" data-i18n="col5">6. Pita Horizontal</option>
+                    <option value="6" data-i18n="col6">7. Pita Vertikal</option>
+                    <option value="7" data-i18n="col7">8. Mozaik Kiri</option>
+                    <option value="8" data-i18n="col8">9. Mozaik Dinamis</option>
+                    <option value="9" data-i18n="col9">10. Galeri Tengah</option>
+                  </select>
+                </div>
+            </div>
+          </section>
+
+          <!-- Upload Foto Dokumentasi (Dinamis 4 atau 10 Foto) -->
+          <section class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 shadow-inner">
+            <h2 class="text-[11px] font-black text-indigo-800 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <i data-lucide="camera" class="w-4 h-4"></i> <span id="sec-photos-title">Foto Dokumentasi</span>
+            </h2>
+            <div id="uploaders-container" class="grid grid-cols-2 gap-3">
+               <!-- Will be populated by JS -->
+            </div>
+            <p class="text-[10px] text-indigo-500 mt-3 italic text-center font-medium">Unggah foto pelaksanaan, tata letak otomatis dikonversi ke kolase estetis yang rapi.</p>
+          </section>
+
+          <!-- Pengaturan Background Kustom -->
+          <section class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <h2 class="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center justify-between">
+              <span data-i18n="secBg">Latar Belakang Dokumen</span>
+              <label class="cursor-pointer bg-white border border-slate-200 hover:border-emerald-500 text-slate-500 hover:text-emerald-600 px-2 py-1 rounded text-[9px] flex items-center gap-1 transition-colors">
+                <i data-lucide="upload" class="w-3 h-3"></i> Upload
+                <input type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'bg')">
+              </label>
+            </h2>
+            <div class="flex gap-2 mb-2">
+              <button onclick="setCustomBg('makkah')" class="flex-1 bg-white border border-slate-200 p-2 rounded-lg text-xs font-semibold text-slate-600 hover:border-emerald-500 transition-colors shadow-sm" data-i18n="btnMakkah">Ka'bah</button>
+              <button onclick="setCustomBg('nabawi')" class="flex-1 bg-white border border-slate-200 p-2 rounded-lg text-xs font-semibold text-slate-600 hover:border-emerald-500 transition-colors shadow-sm" data-i18n="btnNabawi">Nabawi</button>
+              <button onclick="removeImage('bg')" class="bg-red-50 text-red-500 border border-red-200 px-3 py-2 rounded-lg hover:bg-red-100 transition-colors shadow-sm"><i data-lucide="trash-2" class="w-4 h-4 mx-auto"></i></button>
+            </div>
+            <!-- Preview Latar Aktif -->
+            <div id="prev-bg-container" class="hidden w-full h-16 bg-slate-200 border border-slate-300 rounded-lg relative overflow-hidden group">
+              <img id="prev-bg" src="" class="w-full h-full object-cover opacity-50" />
+              <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                 <span class="text-white text-[10px] font-bold uppercase tracking-widest">Latar Custom Aktif</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Data Peserta & Pelaksana -->
+          <section>
+            <h2 class="text-[11px] font-black text-emerald-700 uppercase tracking-widest mb-4 pb-2 border-b-2 border-emerald-50" data-i18n="secPelaksanaan">Data Pelaksanaan</h2>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1.5" data-i18n="lblPeserta">Nama Peserta Badal</label>
+                <input type="text" id="b_peserta" data-i18n-ph="phPeserta" placeholder="Contoh: Alm. H. Ahmad bin Abdullah" class="input-field w-full p-3 bg-white border border-slate-200 rounded-xl text-sm focus:border-emerald-500 outline-none shadow-sm transition-all" oninput="handleInputFilter(this)" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1.5" data-i18n="lblPelaksana">Nama Pelaksana (Mutawwif)</label>
+                <input type="text" id="b_pelaksana" data-i18n-ph="phPelaksana" placeholder="Contoh: Ustadz Fulan Al-Banjary" class="input-field w-full p-3 bg-white border border-slate-200 rounded-xl text-sm focus:border-emerald-500 outline-none shadow-sm transition-all" oninput="handleInputFilter(this)" />
+              </div>
+            </div>
+          </section>
+
+          <!-- Travel / Logo / TTD -->
+          <section class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <h2 class="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center justify-between">
+              <span data-i18n="secLembaga">Lembaga & Pengesahan</span>
+              <div class="flex gap-2">
+                <label class="cursor-pointer bg-white border border-slate-200 hover:border-emerald-500 text-slate-500 hover:text-emerald-600 px-2 py-1 rounded text-[9px] flex items-center gap-1 transition-colors">
+                  <i data-lucide="image" class="w-3 h-3"></i> Logo
+                  <input type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'logo')">
+                </label>
+                <label class="cursor-pointer bg-white border border-slate-200 hover:border-emerald-500 text-slate-500 hover:text-emerald-600 px-2 py-1 rounded text-[9px] flex items-center gap-1 transition-colors">
+                  <i data-lucide="pen-tool" class="w-3 h-3"></i> TTD
+                  <input type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'ttd')">
+                </label>
+              </div>
+            </h2>
+            <div class="space-y-3">
+              <input type="text" id="b_travel" data-i18n-ph="phTravel" placeholder="Nama Travel / Lembaga" class="input-field w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:border-emerald-500 outline-none shadow-sm font-bold" oninput="handleInputFilter(this)" />
+            </div>
+            
+            <div class="flex gap-2 mt-3">
+              <div id="prev-logo-container" class="hidden w-12 h-12 bg-white border rounded relative flex items-center justify-center p-1 group">
+                <img id="prev-logo" src="" class="max-w-full max-h-full object-contain" />
+                <button onclick="removeImage('logo')" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hidden group-hover:block"><i data-lucide="x" class="w-3 h-3"></i></button>
+              </div>
+              <div id="prev-ttd-container" class="hidden w-16 h-12 bg-white border rounded relative flex items-center justify-center p-1 group">
+                <img id="prev-ttd" src="" class="max-w-full max-h-full object-contain" />
+                <button onclick="removeImage('ttd')" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hidden group-hover:block"><i data-lucide="x" class="w-3 h-3"></i></button>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+      <!-- RIGHT: PREVIEW PANEL -->
+      <div class="w-full h-[45vh] md:h-full md:flex-1 bg-slate-800 relative order-1 md:order-2 border-b md:border-b-0 border-slate-700 flex flex-col transition-all duration-300 ease-in-out" id="preview-section">
+        
+        <!-- Zoom control -->
+        <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-2 print:hidden bg-slate-900/90 p-2 rounded-2xl backdrop-blur-md border border-slate-700 shadow-2xl">
+          <button onclick="adjustScale(-0.05)" class="text-white hover:text-emerald-400 p-2" title="Perkecil"><i data-lucide="zoom-out" class="w-5 h-5"></i></button>
+          <button onclick="calculateAutoScale()" class="text-white hover:text-emerald-400 p-2 border-x border-slate-600 px-4 mx-1" title="Fit to Screen"><i data-lucide="maximize" class="w-5 h-5"></i></button>
+          <button onclick="adjustScale(0.05)" class="text-white hover:text-emerald-400 p-2" title="Perbesar"><i data-lucide="zoom-in" class="w-5 h-5"></i></button>
+        </div>
+
+        <!-- Scrollable Viewport -->
+        <div class="flex-1 overflow-auto p-4 md:p-10 flex justify-center items-start custom-scrollbar relative" id="preview-viewport">
+          <div class="w-full flex justify-center items-start pb-24 transition-all" id="cert-wrapper">
+            <!-- DOM Aktual -->
+            <div class="certificate-container landscape transform transition-transform duration-300" id="cert-container" style="transform-origin: top center;">
+              <!-- Content will be injected here by JS -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= SCRIPTS ================= -->
+  <script>
+    // --- Anti-Copy & Anti-Inspect Protections ---
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    document.addEventListener('copy', event => {
+        event.preventDefault();
+        alert("Menyalin konten dilarang!");
+    });
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+            e.preventDefault(); 
+            attemptPrint(); 
+            return;
+        }
+        if (e.key === 'F12' || 
+           (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'i' || e.key === 'j')) || 
+           (e.ctrlKey && (e.key === 'U' || e.key === 'u' || e.key === 'S' || e.key === 's' || e.key === 'C' || e.key === 'c'))) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    const _0x1a2b = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J4bWtlVU9EUzZ0NGZsdGkzYl9OTEUyTlktdFVNSVlFY0lKT1VJYmpOSlBGbGI1QjhEWTgzeEJPOGc3ek1xTU4xb0UvZXhlYw==";
+
+    lucide.createIcons();
+
+    // --- State Management ---
+    let currentTemplate = 0;
+    let autoSaveTimeout = null;
+    let previewScale = 1.0;
+    let isPreviewVisible = true;
+    let currentLanguage = 'id';
+    let currentOrientation = 'landscape';
+    let isPremium = localStorage.getItem('cv_is_premium') === 'true'; 
+    
+    // Images Base64
+    let imgLogo = null;
+    let imgBg = null;
+    let imgTtd = null;
+    let docs = {}; // Dynamic document storage
+
+    // Default SVG Placeholders
+    const placeholderSVG = (text) => `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="%23f1f5f9"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="40" font-weight="bold" fill="%2394a3b8">${text}</text></svg>`;
+
+    // --- Dynamic Photo Labels (Umroh 4 vs Haji 10) ---
+    const umrohLabels = [
+        {id: 'doc1', labelId: 'Miqot & Niat', labelAr: 'الميقات والنية'},
+        {id: 'doc2', labelId: 'Thawaf', labelAr: 'الطواف'},
+        {id: 'doc3', labelId: "Sa'i", labelAr: 'السعي'},
+        {id: 'doc4', labelId: 'Tahallul', labelAr: 'التحلل'}
+    ];
+    
+    const hajiLabels = [
+        {id: 'doc1', labelId: 'Miqot & Niat', labelAr: 'الميقات والنية'},
+        {id: 'doc2', labelId: 'Tarwiyah / Mina', labelAr: 'يوم التروية / منى'},
+        {id: 'doc3', labelId: 'Wukuf di Arafah', labelAr: 'الوقوف بعرفة'},
+        {id: 'doc4', labelId: 'Muzdalifah', labelAr: 'مزدلفة'},
+        {id: 'doc5', labelId: 'Jumrah Aqabah', labelAr: 'جمرة العقبة'},
+        {id: 'doc6', labelId: 'Tahallul Awal', labelAr: 'التحلل الأول'},
+        {id: 'doc7', labelId: 'Thawaf Ifadhah', labelAr: 'طواف الإفاضة'},
+        {id: 'doc8', labelId: "Sa'i Haji", labelAr: 'سعي الحج'},
+        {id: 'doc9', labelId: 'Jumrah Tasyrik', labelAr: 'رمي الجمرات'},
+        {id: 'doc10', labelId: "Thawaf Wada'", labelAr: 'طواف الوداع'}
+    ];
+
+    // --- Font Combos Definition ---
+    const fontCombos = [
+      { id: 0, title: "'Playfair Display', serif", body: "'Inter', sans-serif", arabic: "'Amiri', serif", script: "'Great Vibes', cursive" },
+      { id: 1, title: "'Cinzel', serif", body: "'Montserrat', sans-serif", arabic: "'Cairo', sans-serif", script: "'Alex Brush', cursive" },
+      { id: 2, title: "'Lora', serif", body: "'Lora', serif", arabic: "'Noto Naskh Arabic', serif", script: "'Dancing Script', cursive" },
+      { id: 3, title: "'Roboto Slab', serif", body: "'Roboto', sans-serif", arabic: "'Tajawal', sans-serif", script: "'Satisfy', cursive" },
+      { id: 4, title: "'Cormorant Garamond', serif", body: "'Open Sans', sans-serif", arabic: "'Scheherazade New', serif", script: "'Parisienne', cursive" },
+      { id: 5, title: "'Oswald', sans-serif", body: "'Lato', sans-serif", arabic: "'Reem Kufi', sans-serif", script: "'Pacifico', cursive" },
+      { id: 6, title: "'Merriweather', serif", body: "'Poppins', sans-serif", arabic: "'Aref Ruqaa', serif", script: "'Courgette', cursive" },
+      { id: 7, title: "'Playfair Display', serif", body: "'Montserrat', sans-serif", arabic: "'Amiri', serif", script: "'Parisienne', cursive" },
+      { id: 8, title: "'Poppins', sans-serif", body: "'Inter', sans-serif", arabic: "'Cairo', sans-serif", script: "'Satisfy', cursive" },
+      { id: 9, title: "'Lora', serif", body: "'Open Sans', sans-serif", arabic: "'Noto Naskh Arabic', serif", script: "'Great Vibes', cursive" },
+      { id: 10, title: "'Cinzel', serif", body: "'Lato', sans-serif", arabic: "'Tajawal', sans-serif", script: "'Dancing Script', cursive" },
+      { id: 11, title: "'Cormorant Garamond', serif", body: "'Roboto', sans-serif", arabic: "'Scheherazade New', serif", script: "'Alex Brush', cursive" }
+    ];
+
+    // --- Dictionary Translasi ---
+    const translations = {
+      id: {
+        appTitle: "Dokumentasi Badal",
+        btnCetak: "CETAK PDF",
+        secDesign: "Desain Dokumentasi (20 Tema)",
+        secAttr: "Atribut Dokumen",
+        secBg: "Latar Belakang Dokumen",
+        btnMakkah: "Ka'bah",
+        btnNabawi: "Nabawi",
+        lblOrientasi: "Orientasi Dokumen",
+        lblTanggal: "Tanggal Pelaksanaan",
+        lblLokasi: "Lokasi",
+        lblJenis: "Jenis Badal (Otomatis menyesuaikan slot)",
+        valUmroh: "Badal Umroh (4 Foto)",
+        valHajiUmroh: "Badal Haji & Umroh (10 Foto)",
+        valHaji: "Badal Haji (10 Foto)",
+        lblFont: "Font (12 Variasi)",
+        fontCombo0: "1. Klasik Formal",
+        fontCombo1: "2. Mewah & Elegan",
+        fontCombo2: "3. Tradisional Islam",
+        fontCombo3: "4. Modern Bersih",
+        fontCombo4: "5. Akademik Vintage",
+        fontCombo5: "6. Geometris Tegas",
+        fontCombo6: "7. Minimalis Lembut",
+        fontCombo7: "8. Warisan Kerajaan",
+        fontCombo8: "9. Kontemporer",
+        fontCombo9: "10. Serif Dinamis",
+        fontCombo10: "11. Distingtif Karakter",
+        fontCombo11: "12. Serif Minimalis",
+        
+        lblCollage: "Model Kolase (4 Foto)",
+        col0: "1. Klasik (2x2)",
+        col1: "2. Hero Atas (1 Besar)",
+        col2: "3. Hero Kiri (1 Besar)",
+        col3: "4. Hero Bawah (1 Besar)",
+        col4: "5. Hero Kanan (1 Besar)",
+        col5: "6. Pita Horizontal",
+        col6: "7. Pita Vertikal",
+        col7: "8. Mozaik Kiri",
+        col8: "9. Mozaik Dinamis",
+        col9: "10. Galeri Tengah",
+
+        secPelaksanaan: "Data Pelaksanaan",
+        lblPeserta: "Nama Peserta Badal (Yang Dibadalkan)",
+        phPeserta: "Contoh: Alm. H. Ahmad bin Abdullah",
+        lblPelaksana: "Nama Pelaksana (Mutawwif / Badal)",
+        phPelaksana: "Contoh: Ustadz Fulan Al-Banjary",
+        secLembaga: "Lembaga & Pengesahan",
+        lblTravel: "Nama Travel / Lembaga",
+        phTravel: "Contoh: PT. Barokah Tour",
+        
+        titleDoc: "Dokumentasi Pelaksanaan",
+        secPhotos: "Foto Dokumentasi",
+        certGivenTo: "Diniatkan untuk:",
+        executedBy: "Pelaksana / Mutawwif"
+      },
+      ar: {
+        appTitle: "توثيق البدل",
+        btnCetak: "طباعة PDF",
+        secDesign: "تصميم التوثيق (20 سمة)",
+        secAttr: "خصائص الوثيقة",
+        secBg: "خلفية الوثيقة",
+        btnMakkah: "الكعبة",
+        btnNabawi: "النبوي",
+        lblOrientasi: "اتجاه المستند",
+        lblTanggal: "تاريخ التنفيذ",
+        lblLokasi: "المكان",
+        lblJenis: "نوع البدل",
+        valUmroh: "عمرة البدل (4 صور)",
+        valHajiUmroh: "حج وعمرة البدل (10 صور)",
+        valHaji: "حج البدل (10 صور)",
+        lblFont: "الخطوط (12 نوع)",
+        fontCombo0: "1. كلاسيكي رسمي",
+        fontCombo1: "2. فاخر وأنيق",
+        fontCombo2: "3. تقليدي إسلامي",
+        fontCombo3: "4. حديث ونظيف",
+        fontCombo4: "5. أكاديمي كلاسيكي",
+        fontCombo5: "6. هندسي بارز",
+        fontCombo6: "7. بسيط وناعم",
+        fontCombo7: "8. تراث ملكي",
+        fontCombo8: "9. معاصر",
+        fontCombo9: "10. كلاسيكي ديناميكي",
+        fontCombo10: "11. طابع مميز",
+        fontCombo11: "12. بسيط ومريح",
+        
+        lblCollage: "نموذج الملصق (4 صور)",
+        col0: "1. متماثل (2x2)",
+        col1: "2. رئيسي أعلى",
+        col2: "3. رئيسي يسار",
+        col3: "4. رئيسي أسفل",
+        col4: "5. رئيسي يمين",
+        col5: "6. شريط أفقي",
+        col6: "7. شريط عمودي",
+        col7: "8. فسيفساء يسار",
+        col8: "9. فسيفساء ديناميكي",
+        col9: "10. معرض متوسط",
+
+        secPelaksanaan: "بيانات التنفيذ",
+        lblPeserta: "اسم المعتمر عنه (المتوفى/المريض)",
+        phPeserta: "مثال: المرحوم أحمد بن عبد الله",
+        lblPelaksana: "اسم المنفذ (المطوف)",
+        phPelaksana: "مثال: الأستاذ فلان البنجري",
+        secLembaga: "الوكالة والتصديق",
+        lblTravel: "اسم الشركة / الوكالة",
+        phTravel: "مثال: شركة البركة للسياحة",
+        
+        titleDoc: "توثيق أداء النسك",
+        secPhotos: "صور التوثيق",
+        certGivenTo: "بالنيابة عن:",
+        executedBy: "المطوف / المنفذ"
+      }
+    };
+
+    const jenisMapAr = {
+        "Badal Umroh": "عمرة البدل",
+        "Badal Haji & Umroh": "حج وعمرة البدل",
+        "Badal Haji": "حج البدل"
+    };
+    
+    // --- Template Definitions (20 Premium Themes) ---
+    const templates = [
+      { id: 0, name: 'Classic Gold', thumb: 'linear-gradient(135deg, #fefce8, #fef08a)', bgOut: 'bg-yellow-50', bgInner: 'bg-white border-4 border-double border-yellow-600', title: 'text-yellow-700 font-black', textMain: 'text-slate-800', accent: 'text-yellow-600', frameRing: 'ring-yellow-600/40', pattern: true },
+      { id: 1, name: 'Emerald Islamic', thumb: 'linear-gradient(135deg, #064e3b, #047857)', bgOut: 'bg-emerald-900', bgInner: 'bg-emerald-800 border-2 border-emerald-400 ring-4 ring-emerald-900 ring-offset-2 ring-offset-emerald-500', title: 'text-yellow-400 font-black', textMain: 'text-emerald-50', accent: 'text-yellow-300', frameRing: 'ring-emerald-400/50', pattern: true },
+      { id: 2, name: 'Royal Black', thumb: 'linear-gradient(135deg, #1e293b, #0f172a)', bgOut: 'bg-slate-900', bgInner: 'bg-slate-800 border-[6px] border-amber-500', title: 'text-amber-500 font-black', textMain: 'text-slate-100', accent: 'text-amber-400', frameRing: 'ring-amber-500/50', pattern: true },
+      { id: 3, name: 'Minimalist Clean', thumb: 'linear-gradient(135deg, #ffffff, #f1f5f9)', bgOut: 'bg-white', bgInner: 'bg-white border border-slate-300 shadow-inner', title: 'text-slate-800 font-black tracking-widest', textMain: 'text-slate-600', accent: 'text-slate-900', frameRing: 'ring-slate-300/60', pattern: false },
+      { id: 4, name: 'Ka\'bah Theme', thumb: 'linear-gradient(135deg, #000000, #475569)', bgOut: 'bg-slate-900', bgInner: 'bg-[#111] border-4 border-yellow-600', bgImage: 'https://images.unsplash.com/photo-1565552643952-2508eb605b07?q=80&w=1000&auto=format&fit=crop', imageOpacity: 'opacity-25', title: 'text-yellow-500 font-black', textMain: 'text-gray-200', accent: 'text-yellow-600', frameRing: 'ring-yellow-600/50', pattern: false },
+      { id: 5, name: 'Soft Pastel', thumb: 'linear-gradient(135deg, #faf5ff, #f3e8ff)', bgOut: 'bg-purple-50', bgInner: 'bg-white border-2 border-purple-200 rounded-3xl', title: 'text-purple-800 font-bold', textMain: 'text-slate-700', accent: 'text-purple-600', frameRing: 'ring-purple-300/50', pattern: false },
+      { id: 6, name: 'Official Formal', thumb: 'linear-gradient(135deg, #eff6ff, #bfdbfe)', bgOut: 'bg-slate-100', bgInner: 'bg-white border-[8px] border-double border-slate-800', bgImage: 'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?q=80&w=1000&auto=format&fit=crop', imageOpacity: 'opacity-15', title: 'text-slate-900 font-black', textMain: 'text-slate-800', accent: 'text-slate-700', frameRing: 'ring-slate-800/40', pattern: false },
+      { id: 7, name: 'Green Geometry', thumb: 'linear-gradient(135deg, #dcfce7, #86efac)', bgOut: 'bg-green-100', bgInner: 'bg-white border border-green-500', title: 'text-green-800 font-bold', textMain: 'text-slate-700', accent: 'text-green-600', frameRing: 'ring-green-500/50', pattern: true },
+      { id: 8, name: 'Royal Blue', thumb: 'linear-gradient(135deg, #1e3a8a, #1d4ed8)', bgOut: 'bg-blue-900', bgInner: 'bg-blue-50 border-[4px] border-blue-900', title: 'text-blue-900 font-black', textMain: 'text-blue-950', accent: 'text-blue-700', frameRing: 'ring-blue-900/40', pattern: true },
+      { id: 9, name: 'Desert Sand', thumb: 'linear-gradient(135deg, #ffedd5, #fdba74)', bgOut: 'bg-orange-100', bgInner: 'bg-orange-50 border-2 border-orange-800', title: 'text-orange-900 font-black', textMain: 'text-orange-950', accent: 'text-orange-700', frameRing: 'ring-orange-800/40', pattern: true },
+      { id: 10, name: 'Ka\'bah Exclusive', thumb: 'linear-gradient(135deg, #1f2937, #000000)', bgOut: 'bg-slate-900', bgInner: 'bg-[#0f172a] border-4 border-amber-600', bgImage: 'https://lh3.googleusercontent.com/d/17UkFIKceKQjubOt5aK5864b9Mv1PmBMg', imageOpacity: 'opacity-40', title: 'text-amber-500 font-black', textMain: 'text-gray-100', accent: 'text-amber-400', frameRing: 'ring-amber-500/50', pattern: false },
+      { id: 11, name: 'Nabawi Exclusive', thumb: 'linear-gradient(135deg, #064e3b, #10b981)', bgOut: 'bg-emerald-900', bgInner: 'bg-emerald-950 border-4 border-emerald-400', bgImage: 'https://lh3.googleusercontent.com/d/1s4DYIJuN3qOkxO0RqFyT5tK9dDvgLm2Y', imageOpacity: 'opacity-40', title: 'text-emerald-300 font-black', textMain: 'text-emerald-50', accent: 'text-emerald-400', frameRing: 'ring-emerald-400/50', pattern: false },
+      { id: 12, name: 'Ruby Ka\'bah', thumb: 'linear-gradient(135deg, #4c0519, #881337)', bgOut: 'bg-rose-950', bgInner: 'bg-rose-900 border-4 border-rose-300 ring-2 ring-rose-900 ring-offset-2 ring-offset-rose-800', bgImage: 'https://lh3.googleusercontent.com/d/17UkFIKceKQjubOt5aK5864b9Mv1PmBMg', imageOpacity: 'opacity-30', title: 'text-rose-200 font-black', textMain: 'text-rose-50', accent: 'text-rose-300', frameRing: 'ring-rose-300/50', pattern: false },
+      { id: 13, name: 'Silver Nabawi', thumb: 'linear-gradient(135deg, #e2e8f0, #94a3b8)', bgOut: 'bg-slate-200', bgInner: 'bg-white border-[6px] border-double border-slate-400', bgImage: 'https://lh3.googleusercontent.com/d/1s4DYIJuN3qOkxO0RqFyT5tK9dDvgLm2Y', imageOpacity: 'opacity-20', title: 'text-slate-800 font-black', textMain: 'text-slate-800', accent: 'text-slate-600', frameRing: 'ring-slate-400/50', pattern: false },
+      { id: 14, name: 'Navy Ka\'bah', thumb: 'linear-gradient(135deg, #0f172a, #1e3a8a)', bgOut: 'bg-blue-950', bgInner: 'bg-slate-900 border border-amber-400 ring-4 ring-slate-900 ring-offset-4 ring-offset-amber-500', bgImage: 'https://lh3.googleusercontent.com/d/17UkFIKceKQjubOt5aK5864b9Mv1PmBMg', imageOpacity: 'opacity-25', title: 'text-amber-500 font-black', textMain: 'text-slate-200', accent: 'text-amber-400', frameRing: 'ring-amber-400/50', pattern: false },
+      { id: 15, name: 'Rose Gold Nabawi', thumb: 'linear-gradient(135deg, #fff1f2, #fecdd3)', bgOut: 'bg-stone-100', bgInner: 'bg-[#fff5f5] border-[3px] border-[#d4af37]', bgImage: 'https://lh3.googleusercontent.com/d/1s4DYIJuN3qOkxO0RqFyT5tK9dDvgLm2Y', imageOpacity: 'opacity-15', title: 'text-[#9d6b53] font-black', textMain: 'text-stone-800', accent: 'text-[#b76e79]', frameRing: 'ring-[#d4af37]/50', pattern: false },
+      { id: 16, name: 'Teal Ka\'bah', thumb: 'linear-gradient(135deg, #134e4a, #042f2e)', bgOut: 'bg-teal-900', bgInner: 'bg-teal-950 border-2 border-orange-300 border-dashed', bgImage: 'https://lh3.googleusercontent.com/d/17UkFIKceKQjubOt5aK5864b9Mv1PmBMg', imageOpacity: 'opacity-30', title: 'text-orange-300 font-black', textMain: 'text-teal-50', accent: 'text-orange-400', frameRing: 'ring-orange-300/50', pattern: false },
+      { id: 17, name: 'Ivory Nabawi', thumb: 'linear-gradient(135deg, #fefce8, #e7e5e4)', bgOut: 'bg-[#fdfbf7]', bgInner: 'bg-[#f8f5eb] border border-[#8b7355] shadow-inner', bgImage: 'https://lh3.googleusercontent.com/d/1s4DYIJuN3qOkxO0RqFyT5tK9dDvgLm2Y', imageOpacity: 'opacity-15', title: 'text-[#5c4d3c] font-black', textMain: 'text-[#4a3f35]', accent: 'text-[#8b7355]', frameRing: 'ring-[#8b7355]/40', pattern: false },
+      { id: 18, name: 'Indigo Ka\'bah', thumb: 'linear-gradient(135deg, #312e81, #1e1b4b)', bgOut: 'bg-indigo-950', bgInner: 'bg-indigo-950 border-4 border-indigo-300', bgImage: 'https://lh3.googleusercontent.com/d/17UkFIKceKQjubOt5aK5864b9Mv1PmBMg', imageOpacity: 'opacity-25', title: 'text-indigo-200 font-black', textMain: 'text-indigo-50', accent: 'text-indigo-300', frameRing: 'ring-indigo-300/50', pattern: false },
+      { id: 19, name: 'Golden Nabawi', thumb: 'linear-gradient(135deg, #78350f, #451a03)', bgOut: 'bg-amber-950', bgInner: 'bg-amber-950 border-[6px] border-double border-amber-500', bgImage: 'https://lh3.googleusercontent.com/d/1s4DYIJuN3qOkxO0RqFyT5tK9dDvgLm2Y', imageOpacity: 'opacity-30', title: 'text-amber-400 font-black', textMain: 'text-amber-50', accent: 'text-amber-300', frameRing: 'ring-amber-500/50', pattern: false }
+    ];
+
+    // --- Print Scale Listeners ---
+    window.addEventListener('beforeprint', () => {
+      const container = document.getElementById('cert-container');
+      const wrapper = document.getElementById('cert-wrapper');
+      if(container) { container.style.transform = 'none'; }
+      if(wrapper) { wrapper.style.height = 'auto'; }
+    });
+
+    window.addEventListener('afterprint', () => {
+      calculateAutoScale();
+    });
+
+    // --- Core Initialization ---
+    function init() {
+      setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        const mainApp = document.getElementById('main-app');
+        if(splash) {
+          splash.style.opacity = '0';
+          setTimeout(() => {
+            splash.classList.add('hidden');
+            mainApp.classList.add('loaded');
+            calculateAutoScale();
+          }, 700);
+        }
+      }, 1800);
+
+      renderThemeSelector();
+      changeFontCombo(); 
+      updateOrientationUI();
+      
+      const dateInput = document.getElementById('b_tanggal');
+      const today = new Date();
+      
+      if (!dateInput.value) {
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
+      }
+
+      applyTranslations(); 
+      loadSavedData();
+      renderUploadUI();
+      calculateAutoScale(); 
+      renderPreview();
+    }
+
+    // --- Handlers Dynamic Upload UI ---
+    function handleJenisChange() {
+        renderUploadUI();
+        queueAutoSave();
+    }
+
+    function renderUploadUI() {
+        const jenis = document.getElementById('b_jenis').value;
+        const isHaji = jenis.includes('Haji');
+        const labels = isHaji ? hajiLabels : umrohLabels;
+        const isAr = currentLanguage === 'ar';
+        
+        const container = document.getElementById('uploaders-container');
+        container.innerHTML = '';
+        
+        const collageWrapper = document.getElementById('collage-wrapper');
+        if (isHaji) {
+            collageWrapper.classList.add('hidden');
+            document.getElementById('sec-photos-title').innerText = isAr ? 'صور التوثيق (10 صور للحج)' : 'Foto Dokumentasi Haji (10 Foto)';
+        } else {
+            collageWrapper.classList.remove('hidden');
+            document.getElementById('sec-photos-title').innerText = isAr ? 'صور التوثيق (4 صور)' : 'Foto Dokumentasi Pilihan (4 Foto)';
+        }
+
+        container.className = isHaji ? 'grid grid-cols-2 gap-3' : 'grid grid-cols-2 gap-3';
+
+        labels.forEach(item => {
+           const labelText = isAr ? item.labelAr : item.labelId;
+           const box = document.createElement('div');
+           box.className = "bg-white p-2 rounded-xl border border-indigo-100 flex flex-col items-center justify-center relative overflow-hidden group h-20";
+           box.innerHTML = `
+                <label class="w-full h-full border-2 border-dashed border-indigo-200 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-indigo-50 transition-colors z-10 bg-white/80 backdrop-blur-sm">
+                  <i data-lucide="upload-cloud" class="w-4 h-4 text-indigo-400 mb-1"></i>
+                  <span class="text-[8px] font-bold text-indigo-600 uppercase text-center px-1 leading-tight">${labelText}</span>
+                  <input type="file" accept="image/*" class="hidden" onchange="handleDocsUpload(event, '${item.id}')">
+                </label>
+                <img id="prev-doc-${item.id}" src="" class="absolute inset-0 w-full h-full object-cover hidden" />
+                <button onclick="removeDocImage('${item.id}')" id="btn-rm-${item.id}" class="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hidden z-20 shadow-md hover:bg-red-600"><i data-lucide="x" class="w-3 h-3"></i></button>
+           `;
+           container.appendChild(box);
+        });
+        
+        lucide.createIcons();
+        updateDocsUI();
+    }
+
+    function updateDocsUI() {
+      const isHaji = document.getElementById('b_jenis').value.includes('Haji');
+      const labels = isHaji ? hajiLabels : umrohLabels;
+      
+      labels.forEach(item => {
+        const imgEl = document.getElementById(`prev-doc-${item.id}`);
+        const btnRm = document.getElementById(`btn-rm-${item.id}`);
+        if(imgEl && btnRm) {
+            if(docs[item.id]) {
+              imgEl.src = docs[item.id];
+              imgEl.classList.remove('hidden');
+              btnRm.classList.remove('hidden');
+            } else {
+              imgEl.classList.add('hidden');
+              btnRm.classList.add('hidden');
+            }
+        }
+      });
+    }
+
+    function handleDocsUpload(e, key) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          docs[key] = event.target.result;
+          localStorage.setItem(`bu_doc_${key}`, event.target.result);
+          updateDocsUI();
+          queueAutoSave();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removeDocImage(key) {
+      docs[key] = null;
+      localStorage.removeItem(`bu_doc_${key}`);
+      updateDocsUI();
+      queueAutoSave();
+    }
+
+    // --- Orientation Toggles ---
+    function setOrientation(mode) {
+      currentOrientation = mode;
+      const printStyle = document.getElementById('dynamic-print-style');
+      if (printStyle) {
+         printStyle.innerHTML = `@page { size: A4 ${mode}; margin: 0; }`;
+      }
+      updateOrientationUI();
+      calculateAutoScale();
+      queueAutoSave();
+    }
+
+    function updateOrientationUI() {
+      const btnL = document.getElementById('btn-landscape');
+      const btnP = document.getElementById('btn-portrait');
+      
+      if(currentOrientation === 'landscape') {
+        btnL.className = "flex-1 bg-white border border-emerald-500 text-emerald-600 p-2 rounded-lg text-xs font-semibold shadow-sm";
+        btnP.className = "flex-1 bg-white border border-slate-200 text-slate-600 p-2 rounded-lg text-xs font-semibold hover:border-emerald-500 hover:text-emerald-600 transition-colors shadow-sm";
+      } else {
+        btnP.className = "flex-1 bg-white border border-emerald-500 text-emerald-600 p-2 rounded-lg text-xs font-semibold shadow-sm";
+        btnL.className = "flex-1 bg-white border border-slate-200 text-slate-600 p-2 rounded-lg text-xs font-semibold hover:border-emerald-500 hover:text-emerald-600 transition-colors shadow-sm";
+      }
+    }
+
+    function changeFontCombo() {
+      const idx = document.getElementById('b_font').value || 0;
+      const combo = fontCombos[idx];
+      document.documentElement.style.setProperty('--font-title', combo.title);
+      document.documentElement.style.setProperty('--font-body', combo.body);
+      document.documentElement.style.setProperty('--font-arabic', combo.arabic);
+      document.documentElement.style.setProperty('--font-script', combo.script);
+      queueAutoSave();
+    }
+
+    function toggleLanguage() {
+      currentLanguage = currentLanguage === 'id' ? 'ar' : 'id';
+      document.getElementById('lang-text').innerText = currentLanguage.toUpperCase();
+      applyTranslations();
+      renderUploadUI();
+      queueAutoSave();
+    }
+
+    function applyTranslations() {
+      const t = translations[currentLanguage];
+      
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.getAttribute('data-i18n');
+          if (t[key]) {
+            if (el.tagName === 'OPTION') {
+              el.text = t[key];
+            } else {
+              el.innerHTML = t[key];
+            }
+          }
+      });
+      
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+          const key = el.getAttribute('data-i18n-ph');
+          if (t[key]) el.placeholder = t[key];
+      });
+    }
+
+    function handleInputFilter(el) {
+        if (currentLanguage === 'ar') {
+            if (el.id !== 'b_tanggal' && el.id !== 'b_font' && el.id !== 'b_collage' && el.id !== 'b_jenis') {
+                const cursorPos = el.selectionStart;
+                el.value = el.value.replace(/[a-zA-Z]/g, '');
+                el.setSelectionRange(cursorPos, cursorPos);
+            }
+        }
+        queueAutoSave();
+    }
+
+    function showLoginModal() {
+        const modal = document.getElementById('loginModal');
+        const view = document.getElementById('loginView');
+        modal.classList.remove('hidden');
+        setTimeout(() => { view.classList.remove('scale-95'); view.classList.add('scale-100'); }, 10);
+    }
+
+    function closeLoginModal() {
+        const modal = document.getElementById('loginModal');
+        const view = document.getElementById('loginView');
+        view.classList.remove('scale-100'); view.classList.add('scale-95');
+        setTimeout(() => { modal.classList.add('hidden'); }, 300);
+    }
+
+    function executePrint() {
+        const originalTitle = document.title;
+        const pesertaName = document.getElementById('b_peserta').value.trim() || 'Peserta';
+        document.title = `Dokumentasi Badal - ${pesertaName}`;
+        window.print();
+        setTimeout(() => { document.title = originalTitle; }, 1000);
+    }
+
+    function attemptPrint() {
+        if (isPremium) executePrint();
+        else showLoginModal();
+    }
+
+    async function handleLogin() {
+        const pwdInput = document.getElementById('password').value;
+        if (!pwdInput) return alert("Silakan masukkan token premium!");
+
+        const btn = document.getElementById('btnLogin');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Memverifikasi...</span>';
+        btn.disabled = true;
+
+        try {
+            const apiUrl = atob(_0x1a2b);
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'verify', token: pwdInput })
+            });
+
+            const result = await response.json();
+
+            if (result.success === true) {
+                localStorage.setItem('cv_is_premium', 'true');
+                isPremium = true;
+                renderPreview(); 
+                closeLoginModal();
+                alert(result.message); 
+                setTimeout(() => { executePrint(); }, 400);
+            } else {
+                alert(result.message || "Sandi akses/token yang Anda masukkan SALAH!");
+                document.getElementById('password').value = '';
+                document.getElementById('password').focus();
+            }
+        } catch (error) {
+            console.error("Gagal verifikasi login:", error);
+            alert("Terjadi kesalahan sistem/jaringan saat memverifikasi sandi. Silakan periksa koneksi Anda.");
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    document.getElementById('password').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') handleLogin();
+    });
+
+    function formatHijriMasehi(dateStr, isAr) {
+      if(!dateStr) return '';
+      try {
+        const d = new Date(dateStr);
+        if (isNaN(d)) return `${dateStr}`;
+
+        const localeM = isAr ? 'ar-SA-u-nu-arab' : 'id-ID';
+        const optionsM = { day: 'numeric', month: 'long', year: 'numeric' };
+        let masehi = d.toLocaleDateString(localeM, optionsM);
+        masehi += isAr ? ' م' : ' M';
+        
+        let hijriah = '';
+        try {
+          const localeH = isAr ? 'ar-SA-u-ca-islamic-umalqura-nu-arab' : 'id-ID-u-ca-islamic-umalqura';
+          const optionsH = { day: 'numeric', month: 'long', year: 'numeric', calendar: 'islamic-umalqura' };
+          let hStr = new Intl.DateTimeFormat(localeH, optionsH).format(d);
+          let cleanHStr = hStr.replace(/\s*(هـ|م|AH|SM|EH|H|M|CE|BCE)\s*$/i, '');
+          hijriah = cleanHStr.trim() + (isAr ? ' هـ' : ' H');
+        } catch(e) { hijriah = ''; }
+
+        const separator = isAr ? ' | ' : ' | ';
+        return hijriah ? `${masehi}${separator}${hijriah}` : `${masehi}`;
+      } catch(e) {
+        return `${dateStr}`;
+      }
+    }
+
+    function renderThemeSelector() {
+      const container = document.getElementById('template-selector');
+      container.innerHTML = '';
+      templates.forEach((theme, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `w-full aspect-video rounded-md border-2 border-transparent hover:scale-105 transition-transform shadow-sm overflow-hidden ${idx === currentTemplate ? 'thumb-active' : ''}`;
+        btn.style.background = theme.thumb;
+        btn.title = theme.name;
+        btn.onclick = () => {
+          if (!isPremium && currentTemplate !== idx) {
+             document.getElementById('premiumModal').classList.remove('hidden');
+          }
+          currentTemplate = idx;
+          renderThemeSelector(); 
+          queueAutoSave();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function setCustomBg(type) {
+      if (!isPremium) {
+         document.getElementById('premiumModal').classList.remove('hidden');
+      }
+      if (type === 'makkah') imgBg = 'https://lh3.googleusercontent.com/d/17UkFIKceKQjubOt5aK5864b9Mv1PmBMg';
+      else if (type === 'nabawi') imgBg = 'https://lh3.googleusercontent.com/d/1s4DYIJuN3qOkxO0RqFyT5tK9dDvgLm2Y';
+      
+      localStorage.setItem('bu_doc_bg', imgBg);
+      updateImageUI();
+      queueAutoSave();
+    }
+
+    function handleImageUpload(e, type) {
+      const file = e.target.files[0];
+      if (file) {
+        if (!isPremium && type === 'bg') {
+             document.getElementById('premiumModal').classList.remove('hidden');
+        }
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const base64 = event.target.result;
+          if (type === 'logo') { imgLogo = base64; localStorage.setItem('bu_doc_logo', base64); }
+          else if (type === 'ttd') { imgTtd = base64; localStorage.setItem('bu_doc_ttd', base64); }
+          else if (type === 'bg') { imgBg = base64; localStorage.setItem('bu_doc_bg', base64); }
+          updateImageUI();
+          queueAutoSave();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removeImage(type) {
+      if (type === 'logo') { imgLogo = null; localStorage.removeItem('bu_doc_logo'); }
+      else if (type === 'ttd') { imgTtd = null; localStorage.removeItem('bu_doc_ttd'); }
+      else if (type === 'bg') { imgBg = null; localStorage.removeItem('bu_doc_bg'); }
+      updateImageUI();
+      queueAutoSave();
+    }
+
+    function updateImageUI() {
+      const logoCont = document.getElementById('prev-logo-container');
+      const logoImg = document.getElementById('prev-logo');
+      if (imgLogo) { logoImg.src = imgLogo; logoCont.classList.remove('hidden'); } 
+      else { logoCont.classList.add('hidden'); }
+
+      const ttdCont = document.getElementById('prev-ttd-container');
+      const ttdImg = document.getElementById('prev-ttd');
+      if (imgTtd) { ttdImg.src = imgTtd; ttdCont.classList.remove('hidden'); } 
+      else { ttdCont.classList.add('hidden'); }
+
+      const bgCont = document.getElementById('prev-bg-container');
+      const bgImg = document.getElementById('prev-bg');
+      if (imgBg) { bgImg.src = imgBg; bgCont.classList.remove('hidden'); } 
+      else { bgCont.classList.add('hidden'); }
+    }
+
+    function queueAutoSave() {
+      clearTimeout(autoSaveTimeout);
+      renderPreview();
+      autoSaveTimeout = setTimeout(saveData, 500);
+    }
+
+    function saveData() {
+      const inputs = document.querySelectorAll('.input-field');
+      const data = { 
+        template: currentTemplate, 
+        orientation: currentOrientation,
+        fields: {} 
+      };
+      inputs.forEach(input => { data.fields[input.id] = input.value; });
+      localStorage.setItem('bu_doc_data', JSON.stringify(data));
+    }
+
+    function loadSavedData() {
+      imgLogo = localStorage.getItem('bu_doc_logo');
+      imgTtd = localStorage.getItem('bu_doc_ttd');
+      imgBg = localStorage.getItem('bu_doc_bg');
+      updateImageUI();
+
+      // Load all possible docs from storage
+      [...umrohLabels, ...hajiLabels].forEach(lbl => {
+          docs[lbl.id] = localStorage.getItem(`bu_doc_${lbl.id}`);
+      });
+
+      const savedData = localStorage.getItem('bu_doc_data');
+      if (savedData) {
+        try {
+          const data = JSON.parse(savedData);
+          if (data.template !== undefined) { currentTemplate = data.template; renderThemeSelector(); }
+          if (data.orientation !== undefined) { setOrientation(data.orientation); }
+          if (data.fields) {
+            Object.keys(data.fields).forEach(id => {
+              const el = document.getElementById(id);
+              if (el) {
+                el.value = data.fields[id];
+                if (id === 'b_font') changeFontCombo();
+              }
+            });
+          }
+        } catch(e) { console.error("Error loading data", e); }
+      }
+    }
+
+    function resetData() {
+      if(confirm("Hapus semua data form & foto?")) {
+        localStorage.removeItem('bu_doc_data');
+        localStorage.removeItem('bu_doc_logo');
+        localStorage.removeItem('bu_doc_ttd');
+        localStorage.removeItem('bu_doc_bg');
+        
+        [...umrohLabels, ...hajiLabels].forEach(lbl => localStorage.removeItem(`bu_doc_${lbl.id}`));
+        
+        imgLogo = null; imgTtd = null; imgBg = null;
+        docs = {};
+        
+        document.querySelectorAll('.input-field').forEach(el => el.value = '');
+        setOrientation('landscape');
+        updateImageUI();
+        renderUploadUI();
+        init();
+      }
+    }
+
+    function adjustScale(change) {
+      previewScale += change;
+      if (previewScale < 0.15) previewScale = 0.15;
+      if (previewScale > 2.0) previewScale = 2.0;
+      
+      const container = document.getElementById('cert-container');
+      const wrapper = document.getElementById('cert-wrapper');
+      
+      if (window.matchMedia('print').matches) {
+        container.style.transform = `none`;
+        wrapper.style.height = 'auto';
+      } else {
+        container.style.transform = `scale(${previewScale})`;
+        const baseHeight = currentOrientation === 'landscape' ? 794 : 1123;
+        wrapper.style.height = `${baseHeight * previewScale}px`; 
+      }
+    }
+
+    function calculateAutoScale() {
+      const viewport = document.getElementById('preview-viewport');
+      if (!viewport || !isPreviewVisible) return;
+      
+      const certBaseWidth = currentOrientation === 'landscape' ? 1123 : 794; 
+      const paddingX = window.innerWidth < 768 ? 32 : 80; 
+      
+      let autoScale = (viewport.clientWidth - paddingX) / certBaseWidth;
+      if (autoScale > 1.5) autoScale = 1.5;
+      if (autoScale < 0.15) autoScale = 0.15;
+      
+      previewScale = autoScale;
+      adjustScale(0);
+    }
+
+    window.addEventListener('resize', calculateAutoScale);
+
+    function togglePreview() {
+      const previewSection = document.getElementById('preview-section');
+      const icon = document.getElementById('toggle-preview-icon');
+      isPreviewVisible = !isPreviewVisible;
+      
+      if (isPreviewVisible) {
+          previewSection.classList.remove('hidden');
+          setTimeout(() => {
+            previewSection.classList.replace('opacity-0', 'opacity-100');
+            icon.setAttribute('data-lucide', 'eye-off');
+            lucide.createIcons();
+            calculateAutoScale(); 
+          }, 10);
+      } else {
+          previewSection.classList.replace('opacity-100', 'opacity-0');
+          setTimeout(() => {
+            previewSection.classList.add('hidden');
+            icon.setAttribute('data-lucide', 'eye');
+            lucide.createIcons();
+          }, 300);
+      }
+    }
+
+    function val(id, fallback = '') {
+      const el = document.getElementById(id);
+      return el && el.value.trim() !== '' ? el.value : fallback;
+    }
+
+    // --- Render Documentation Grid ---
+    function renderPreview() {
+      const container = document.getElementById('cert-container');
+      const theme = templates[currentTemplate];
+      const isAr = currentLanguage === 'ar';
+      const isPortrait = currentOrientation === 'portrait';
+      const t = translations[currentLanguage];
+      
+      container.classList.remove('fade-enter-active');
+      container.classList.add('fade-enter');
+      
+      setTimeout(() => {
+        const logoHtml = imgLogo ? `<img src="${imgLogo}" class="h-12 w-12 md:h-16 md:w-16 object-contain drop-shadow-md" />` : ``;
+
+        const patternHtml = theme.pattern ? `<div class="pattern-overlay"></div>` : '';
+        let activeBgImg = imgBg || theme.bgImage;
+        let activeBgOpacity = imgBg ? 'opacity-25' : theme.imageOpacity; 
+        const bgImageHtml = activeBgImg ? `<div class="absolute inset-0 z-0 ${activeBgOpacity} pointer-events-none" style="background-image: url('${activeBgImg}'); background-size: cover; background-position: center;"></div>` : '';
+
+        const dateInputVal = document.getElementById('b_tanggal').value;
+        const locVal = val('b_lokasi', isAr ? 'مكة المكرمة' : 'Makkah');
+        const formattedDateFull = formatHijriMasehi(dateInputVal, isAr); 
+
+        const valJenis = val('b_jenis', 'Badal Umroh');
+        const displayJenis = isAr ? (jenisMapAr[valJenis] || valJenis) : valJenis;
+        const isHaji = valJenis.includes('Haji');
+
+        const wmSize = isPortrait ? 'text-[80px]' : 'text-[120px]';
+        const watermarkHtml = !isPremium ? `
+          <div class="absolute inset-0 flex items-center justify-center z-[100] pointer-events-none overflow-hidden">
+              <span class="${wmSize} font-black text-slate-800 opacity-[0.06] transform -rotate-45 select-none tracking-widest drop-shadow-md">GHASSAN</span>
+          </div>` : '';
+
+        const paddingContainer = isPortrait ? 'p-6 md:p-8' : 'p-4 md:p-8'; 
+        const titleClass = isPortrait ? 'text-2xl md:text-4xl' : 'text-3xl md:text-5xl';
+        const headerSpaceClass = isPortrait ? 'pb-2' : 'pb-2 md:pb-4';
+
+        // 1. GRID LOGIC (4 vs 10 Photos)
+        let gridClass = "";
+        let photosHtml = "";
+        const photoDataList = isHaji ? hajiLabels : umrohLabels;
+
+        if (isHaji) {
+            // Tata Letak 10 Foto (Kaku agar rapih)
+            gridClass = isPortrait ? 'grid grid-cols-2 grid-rows-5 gap-2 md:gap-3' : 'grid grid-cols-5 grid-rows-2 gap-2 md:gap-3';
+            
+            photoDataList.forEach((item, index) => {
+              const itemLabel = isAr ? item.labelAr : item.labelId;
+              const imgSource = docs[item.id] || placeholderSVG(itemLabel);
+              photosHtml += `
+                <div class="relative w-full h-full rounded-lg md:rounded-xl overflow-hidden glass-panel ${theme.frameRing} ring-inset ring-2 shadow-md group flex">
+                   <img src="${imgSource}" class="absolute inset-0 w-full h-full object-cover photo-filter transition-transform duration-700 group-hover:scale-105" crossorigin="anonymous" />
+                   <div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
+                   <div class="absolute bottom-2 w-full text-center pointer-events-none px-1 z-10 flex justify-center">
+                     <span class="inline-block bg-black/40 backdrop-blur-md text-white px-2 py-1 rounded-md md:rounded-full text-[6px] md:text-[8px] font-bold tracking-widest uppercase cert-title-text border border-white/20 shadow-lg truncate max-w-[95%]">${itemLabel}</span>
+                   </div>
+                </div>
+              `;
+            });
+        } else {
+            // Tata Letak 4 Foto Dinamis (Sesuai Pilihan Kolase)
+            const collageModels = [
+              { cont: "grid-cols-2 grid-rows-2", items: ["col-span-1 row-span-1", "col-span-1 row-span-1", "col-span-1 row-span-1", "col-span-1 row-span-1"] },
+              { cont: "grid-cols-3 grid-rows-3", items: ["col-span-3 row-span-2", "col-span-1 row-span-1", "col-span-1 row-span-1", "col-span-1 row-span-1"] },
+              { cont: "grid-cols-3 grid-rows-3", items: ["col-span-2 row-span-3", "col-span-1 row-span-1", "col-span-1 row-span-1", "col-span-1 row-span-1"] },
+              { cont: "grid-cols-3 grid-rows-3", items: ["col-span-1 row-span-1", "col-span-1 row-span-1", "col-span-1 row-span-1", "col-span-3 row-span-2"] },
+              { cont: "grid-cols-3 grid-rows-3", items: ["col-start-2 col-span-2 row-start-1 row-span-3", "col-start-1 col-span-1 row-start-1 row-span-1", "col-start-1 col-span-1 row-start-2 row-span-1", "col-start-1 col-span-1 row-start-3 row-span-1"] },
+              { cont: "grid-cols-4 grid-rows-1", items: ["col-span-1 row-span-1", "col-span-1 row-span-1", "col-span-1 row-span-1", "col-span-1 row-span-1"] },
+              { cont: "grid-cols-1 grid-rows-4", items: ["col-span-1 row-span-1", "col-span-1 row-span-1", "col-span-1 row-span-1", "col-span-1 row-span-1"] },
+              { cont: "grid-cols-4 grid-rows-2", items: ["col-span-2 row-span-2", "col-span-2 row-span-1", "col-span-1 row-span-1", "col-span-1 row-span-1"] },
+              { cont: "grid-cols-3 grid-rows-2", items: ["col-span-2 row-span-1", "col-span-1 row-span-2", "col-span-1 row-span-1", "col-span-1 row-span-1"] },
+              { cont: "grid-cols-4 grid-rows-4", items: ["col-span-4 row-span-2", "col-span-1 row-span-2", "col-span-2 row-span-2", "col-span-1 row-span-2"] }
+            ];
+            
+            const collageIdx = parseInt(val('b_collage', '0'));
+            const activeModel = collageModels[collageIdx] || collageModels[0];
+            gridClass = `grid ${activeModel.cont} gap-2 md:gap-4`;
+
+            photoDataList.forEach((item, index) => {
+              const itemLabel = isAr ? item.labelAr : item.labelId;
+              const imgSource = docs[item.id] || placeholderSVG(itemLabel);
+              const spanClass = activeModel.items[index] || '';
+              photosHtml += `
+                <div class="${spanClass} relative w-full h-full rounded-xl md:rounded-[1.5rem] overflow-hidden glass-panel ${theme.frameRing} ring-inset ring-2 shadow-xl group flex">
+                   <img src="${imgSource}" class="absolute inset-0 w-full h-full object-cover photo-filter transition-transform duration-700 group-hover:scale-105" crossorigin="anonymous" />
+                   <div class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
+                   <div class="absolute bottom-2 md:bottom-4 w-full text-center pointer-events-none px-1 z-10 flex justify-center">
+                     <span class="inline-block bg-black/40 backdrop-blur-md text-white px-3 md:px-5 py-1 md:py-1.5 rounded-full text-[8px] md:text-xs font-bold tracking-widest uppercase cert-title-text border border-white/20 shadow-lg truncate max-w-[90%]">${itemLabel}</span>
+                   </div>
+                </div>
+              `;
+            });
+        }
+
+        const participantText = val('b_peserta', t.phPeserta);
+        const executorText = val('b_pelaksana', t.phPelaksana);
+        const travelText = val('b_travel', '');
+
+        // Grup Pengesahan Realistic (Bawah)
+        // Pt-12 memberi ruang atas agar ttd bisa naik bebas (overlap realistis)
+        const signatureOverlapHtml = `
+          <div class="relative flex flex-col items-center justify-center text-center mt-2 z-10 pt-10 md:pt-14 pb-2 w-64 md:w-80">
+             <!-- Nama Pelaksana -->
+             <p class="text-sm md:text-lg font-bold cert-title-text border-b border-current border-dashed inline-block pb-0.5 px-6 relative z-0">${executorText}</p>
+             <!-- Jabatan/Title -->
+             <p class="text-[8px] md:text-[10px] uppercase tracking-[0.2em] mt-1 opacity-70 cert-body-text">${t.executedBy}</p>
+             
+             <!-- GAMBAR TTD Murni Overlay: Absolute + mix-blend-multiply + sedikit rotasi, menabrak text -->
+             ${imgTtd ? `<img src="${imgTtd}" class="absolute bottom-4 max-h-[100px] md:max-h-[140px] w-auto realistic-signature -rotate-[3deg] z-20 pointer-events-none opacity-90" />` : ''}
+          </div>
+        `;
+
+        // HTML Utama
+        const html = `
+          <div class="cert-inner ${theme.bgOut}" ${isAr ? 'dir="rtl"' : ''}>
+            <div class="w-full h-full ${theme.bgInner} relative flex flex-col justify-between ${paddingContainer}">
+              
+              ${patternHtml}
+              ${bgImageHtml}
+              ${watermarkHtml}
+              
+              <!-- 1. HEADER SECTION -->
+              <div class="w-full flex-none relative z-20 ${headerSpaceClass} flex flex-col items-center justify-center text-center">
+                <div class="absolute top-0 right-0">${logoHtml}</div>
+                
+                <h1 class="${titleClass} uppercase tracking-widest cert-title-text ${theme.title} leading-tight drop-shadow-sm">
+                  ${t.titleDoc}
+                </h1>
+                <h2 class="text-sm md:text-xl mt-1 tracking-widest uppercase font-semibold cert-title-text ${theme.accent}">
+                  ${displayJenis}
+                </h2>
+                <div class="w-16 md:w-32 h-0.5 ${theme.bgInner} mx-auto mt-2 rounded-full opacity-50 border-t border-current"></div>
+                
+                <!-- Nama Peserta -->
+                <div class="mt-2 md:mt-3 text-center w-full max-w-4xl ${theme.textMain} cert-body-text px-4">
+                  <p class="text-[8px] md:text-[10px] uppercase tracking-widest mb-0.5 md:mb-1 opacity-80">${t.certGivenTo}</p>
+                  <p class="text-2xl md:text-5xl lg:text-6xl font-bold cert-script-text ${theme.accent} leading-tight drop-shadow-sm">${participantText}</p>
+                </div>
+              </div>
+
+              <!-- 2. PHOTOS GRID SECTION -->
+              <div class="flex-1 w-full relative z-20 min-h-0 flex items-center justify-center px-2 md:px-12 py-1">
+                <div class="w-full h-full ${gridClass}">
+                  ${photosHtml}
+                </div>
+              </div>
+
+              <!-- 3. FOOTER SECTION (Paten Grup di Tengah Bawah) -->
+              <div class="w-full flex-none relative z-20 flex justify-center text-center ${theme.textMain} pt-4">
+                 
+                 <div class="flex flex-col items-center w-full max-w-md">
+                     <!-- Tempat & Tanggal -->
+                     <p class="text-[9px] md:text-xs font-semibold uppercase tracking-widest opacity-90 cert-body-text leading-tight drop-shadow-sm">
+                       ${locVal}${isAr ? '،' : ','} ${formattedDateFull}
+                     </p>
+                     
+                     <!-- Grup Tanda Tangan & Nama (Overlap Realistic) -->
+                     ${signatureOverlapHtml}
+
+                     <!-- Nama Travel Opsional -->
+                     ${travelText ? `<p class="text-[7px] md:text-[8px] font-bold uppercase tracking-[0.2em] opacity-60 mt-2">${travelText}</p>` : ''}
+                 </div>
+                 
+              </div>
+
+            </div>
+          </div>
+        `;
+
+        container.innerHTML = html;
+        container.className = `certificate-container ${currentOrientation} ${theme.bgOut}`;
+        lucide.createIcons();
+        
+        requestAnimationFrame(() => {
+          container.classList.add('fade-enter-active');
+        });
+
+      }, 50);
+    }
+
+    // Run
+    window.onload = init;
+
+  </script>
+</body>
+</html>
