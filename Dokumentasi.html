@@ -827,31 +827,6 @@
       reader.readAsDataURL(file);
     }
 
-    function handleDocsUpload(e, key) {
-      const file = e.target.files[0];
-      if (file) {
-        compressImage(file, (compressedBase64) => {
-          docs[key] = compressedBase64;
-          try {
-            localStorage.setItem(`bu_doc_${key}`, compressedBase64);
-          } catch(err) {
-            console.warn('Storage limit reached', err);
-            alert('Penyimpanan browser hampir penuh. Foto tampil, tapi mungkin tidak tersimpan secara permanen jika memuat ulang halaman.');
-          }
-          updateDocsUI();
-          queueAutoSave();
-        });
-      }
-      e.target.value = ''; // Reset input agar foto yang sama bisa dipilih lagi jika dihapus
-    }
-
-    function removeDocImage(key) {
-      docs[key] = null;
-      localStorage.removeItem(`bu_doc_${key}`);
-      updateDocsUI();
-      queueAutoSave();
-    }
-
     // --- Orientation Toggles ---
     function setOrientation(mode) {
       currentOrientation = mode;
@@ -1062,22 +1037,35 @@
         if (!isPremium && type === 'bg') {
              document.getElementById('premiumModal').classList.remove('hidden');
         }
-        compressImage(file, (compressedBase64) => {
-          if (type === 'logo') { 
-              imgLogo = compressedBase64; 
-              try { localStorage.setItem('bu_doc_logo', compressedBase64); } catch(e){} 
-          }
-          else if (type === 'ttd') { 
-              imgTtd = compressedBase64; 
-              try { localStorage.setItem('bu_doc_ttd', compressedBase64); } catch(e){} 
-          }
-          else if (type === 'bg') { 
-              imgBg = compressedBase64; 
-              try { localStorage.setItem('bu_doc_bg', compressedBase64); } catch(e){} 
-          }
-          updateImageUI();
-          queueAutoSave();
-        });
+
+        // Jangan mengompres Logo dan Tanda Tangan (TTD) agar transparan (PNG) tetap terjaga
+        if (type === 'logo' || type === 'ttd') {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              const base64 = event.target.result;
+              if (type === 'logo') { 
+                  imgLogo = base64; 
+                  try { localStorage.setItem('bu_doc_logo', base64); } catch(e){} 
+              }
+              else if (type === 'ttd') { 
+                  imgTtd = base64; 
+                  try { localStorage.setItem('bu_doc_ttd', base64); } catch(e){} 
+              }
+              updateImageUI();
+              queueAutoSave();
+            };
+            reader.readAsDataURL(file);
+        } else {
+            // Kompres untuk Background (bg) agar tidak memberatkan browser
+            compressImage(file, (compressedBase64) => {
+              if (type === 'bg') { 
+                  imgBg = compressedBase64; 
+                  try { localStorage.setItem('bu_doc_bg', compressedBase64); } catch(e){} 
+              }
+              updateImageUI();
+              queueAutoSave();
+            });
+        }
       }
       e.target.value = '';
     }
@@ -1091,6 +1079,7 @@
             localStorage.setItem(`bu_doc_${key}`, compressedBase64);
           } catch(err) {
             console.warn('Storage limit reached', err);
+            alert('Penyimpanan browser hampir penuh. Foto tampil, tapi mungkin tidak tersimpan secara permanen jika memuat ulang halaman.');
           }
           updateDocsUI();
           queueAutoSave();
@@ -1104,6 +1093,13 @@
       else if (type === 'ttd') { imgTtd = null; localStorage.removeItem('bu_doc_ttd'); }
       else if (type === 'bg') { imgBg = null; localStorage.removeItem('bu_doc_bg'); }
       updateImageUI();
+      queueAutoSave();
+    }
+
+    function removeDocImage(key) {
+      docs[key] = null;
+      localStorage.removeItem(`bu_doc_${key}`);
+      updateDocsUI();
       queueAutoSave();
     }
 
